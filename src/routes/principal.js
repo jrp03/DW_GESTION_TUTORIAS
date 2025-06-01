@@ -8,5 +8,8 @@ router.get("/", (req, res) => {
 router.get("/materias", (req, res) => {
     res.render('materias', { title: 'Materias' });
 });
+router.get("/registro_asesor", (req, res) => {
+    res.render('registros_asesores', { title: 'Registro Asesor' });
+});
 
 module.exports = router;

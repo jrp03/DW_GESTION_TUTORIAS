@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 const routes = require('./routes/index');
+const expressLayouts = require('express-ejs-layouts');
 
 // Importar el router principal
 var principalRouter = require('./routes/principal');
@@ -22,6 +23,11 @@ app.set('view engine', 'ejs'); // Cambia 'html' por el motor de vistas que esté
 // Si estás usando un motor de plantillas como EJS, Pug, etc., puedes configurarlo aquí
 // Por ejemplo, si usas EJS:
 // app.set('view engine', 'ejs');
+// Configurar el middleware de layouts
+app.use(expressLayouts);
+
+// Establecer el layout predeterminado
+app.set('layout', 'layout/layoutPrincipal'); // layout.ejs será el archivo base
 
 
 // Configurar el motor de vistas o paginas. Depende del framework que uses
