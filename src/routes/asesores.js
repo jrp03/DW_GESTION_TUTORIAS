@@ -4,12 +4,13 @@ const asesoresController = require('../controllers/asesoresController');
 const router = express.Router();
 
 // Rutas para el módulo de asesores
-router.get("/", asesoresController.getAll);
-router.get("/materias", asesoresController.getMaterias);
-router.get("/maestros", asesoresController.getMaestros);
-router.get("/:id", asesoresController.getById);
-router.post("/guardar", asesoresController.create);
-router.post("/editar", asesoresController.update);
-router.post("/eliminar", asesoresController.deleteAsesor);
+router.get("/", asesoresController.getAsesores) // GET todos los asesores
+router.get("/materias", asesoresController.getMateriasAlumno) // GET materias por alumno
+router.get("/maestros", asesoresController.getMaestrosPorAlumno) // GET maestros por alumno
+router.get("/:id", asesoresController.getAsesorById) // GET un asesor por ID
+router.post("/", asesoresController.createAsesor) // POST nuevo asesor
+router.put("/:id", asesoresController.updateAsesor) // PUT actualizar asesor
+router.delete("/:id", asesoresController.deleteAsesor) // DELETE eliminar asesor
+
 
 module.exports = router;

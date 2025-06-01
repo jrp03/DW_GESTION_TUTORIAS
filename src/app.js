@@ -39,7 +39,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Configurar rutas de la API
-app.use("./api", routes)
+app.use("/api", routes)
 
 
 app.use(helmet()); // Use helmet for security
@@ -85,6 +85,11 @@ app.get("/", (req, res) => {
 app.use(function(req, res, next) {
   next(createError(404));
 });
+// Manejo de rutas no encontradas
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Ruta no encontrada' });
+});
+
 
 // error handler
 app.use(function(err, req, res, next) {
