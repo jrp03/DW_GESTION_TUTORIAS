@@ -55,13 +55,13 @@ const asesoresController = {
    */
  async updateAsesor(req, res) {
     const { id } = req.params;
-    const {id_alumno,nombre, apellido, telefono, correo, maestro, carrera, materia } = req.body;
+    const {nombre, apellido, telefono, correo, maestro, carrera, materia } = req.body;
     try {
-     const result = await Asesor.update ( id_alumno,nombre, apellido, telefono, correo, maestro, carrera, materia );
+     const result = await Asesor.update ( id,nombre, apellido, telefono, correo, maestro, carrera, materia );
       if (result.affectedRows === 0) {
         return res.status(404).json({ error: 'Asesor no encontrado' });
       }
-      res.json({ id_alumno,nombre, apellido, telefono, correo, maestro, carrera, materia });
+      res.json({ id_alumno: id,nombre, apellido, telefono, correo, maestro, carrera, materia });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Error al actualizar al alumno' });

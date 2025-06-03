@@ -1,63 +1,94 @@
-//import bcrypt from "bcryptjs"
-const Database = require('../db.js');
+const bcrypt = require('bcrypt');
+const { pool } = require('../db.js');
 
 class Usuario {
   /**
    * Obtener un usuario por su nombre de usuario
    * @param {string} username - Nombre de usuario
-   * @returns {Promise<Object>} Resultado de la consulta
+   * @returns {Promise<Object|null>} Usuario encontrado o null
    */
   static async getByUsername(username) {
-    const db = Database.getInstance()
-    const sql = "SELECT * FROM usuarios WHERE username = ?"
-    return await db.get_data(sql, [username])
+    try {
+      const [rows] = await pool.query(
+        "SELECT * FROM usuarios WHERE username = ?",
+        [username]
+      );
+
+      return rows.length > 0 ? rows[0] : null;
+    } catch (error) {
+      console.error('Error al obtener usuario:', error);
+      throw error;
+    }
   }
 
   /**
    * Crear un nuevo usuario
-   * @param {Object} usuario - Datos del usuario
-   * @returns {Promise<Object>} Resultado de la operación
+   * @param {string} username - Nombre de usuario
+   * @param {string} password - Contraseña en texto plano
+   * @param {string} nombre - Nombre del usuario
+   * @param {string} [rol='usuario'] - Rol del usuario
+   * @returns {Promise<Object>} Usuario creado (sin contraseña)
    */
-  static async create(usuario) {
-    const db = Database.getInstance()
+  static async create(username, password, nombre, rol = 'usuario') {
+    try {
+      // Verificar si ya existe el usuario
+      const existingUser = await this.getByUsername(username);
+      if (existingUser) {
+        throw new Error(`El nombre de usuario "${username}" ya está en uso.`);
+      }
 
-    // Encriptar la contraseña
-    const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(usuario.password, salt)
+      // Encriptar la contraseña
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
 
-    const sql = "INSERT INTO usuarios (username, password, nombre, rol) VALUES (?, ?, ?, ?)"
-    return await db.exec(sql, [
-      usuario.username,
-      hashedPassword,
-      usuario.nombre,
-      usuario.rol || "usuario", // Por defecto, rol de usuario
-    ])
+      // Insertar nuevo usuario
+      const [result] = await pool.query(
+        "INSERT INTO usuarios (username, password, nombre, rol) VALUES (?, ?, ?, ?)",
+        [username, hashedPassword, nombre, rol]
+      );
+
+      return {
+        id: result.insertId,
+        username,
+        nombre,
+        rol
+      };
+    } catch (error) {
+      console.error('Error al crear usuario:', error);
+      throw error;
+    }
   }
 
-  /**
-   * Verificar si las credenciales son válidas
-   * @param {string} username - Nombre de usuario
-   * @param {string} password - Contraseña
-   * @returns {Promise<Object|null>} Usuario si las credenciales son válidas, null en caso contrario
-   */
-  static async verificarCredenciales(username, password) {
-    const result = await this.getByUsername(username)
+/**
+ * Verificar si las credenciales son válidas
+ * @param {string} username - Nombre de usuario
+ * @param {string} password - Contraseña en texto plano
+ * @returns {Promise<Object|null>} Usuario si las credenciales son válidas, null en caso contrario
+ */
+static async verificarCredenciales(username, password) {
+  try {
+    const usuario = await this.getByUsername(username);
 
-    if (result.STATUS !== "OK" || result.DATA.length === 0) {
-      return null
+    if (!usuario) {
+      return null; // Usuario no encontrado
     }
 
-    const usuario = result.DATA[0]
-    const passwordValida = await bcrypt.compare(password, usuario.password)
+    const passwordValida = await bcrypt.compare(password, usuario.password);
 
     if (!passwordValida) {
-      return null
+      return null; // Contraseña incorrecta
     }
 
     // No devolver la contraseña
-    delete usuario.password
-    return usuario
+    delete usuario.password;
+
+    return usuario;
+  } catch (error) {
+    console.error('Error al verificar credenciales:', error);
+    throw error;
   }
+}
+
 }
 
 module.exports = Usuario;

@@ -1,4 +1,4 @@
-const Database = require('../db.js');
+const {pool} = require('../db.js');
 
 class Master {
   /**

@@ -9,9 +9,9 @@ const authController = {
   /**
    * Iniciar sesión
    */
-  login: async (req, res) => {
+  async login(req, res) {
     try {
-      const { username, password } = req.body
+      const { username, password } = req.body;
 
       if (!username || !password) {
         return res.status(400).json({
@@ -19,7 +19,7 @@ const authController = {
           ERROR: "Por favor, proporciona nombre de usuario y contraseña.",
         })
       }
-
+      // Verificar si el usuario ya existe
       const usuario = await Usuario.verificarCredenciales(username, password)
 
       if (!usuario) {
@@ -31,7 +31,9 @@ const authController = {
 
       // Generar token JWT
       const token = jwt.sign(
-        { id: usuario.id, username: usuario.username, rol: usuario.rol },
+        { id: usuario.id, 
+          username: usuario.username, 
+          rol: usuario.rol },
         JWT_SECRET,
         { expiresIn: "8h" }, // El token expira en 8 horas
       )
@@ -49,19 +51,20 @@ const authController = {
         },
       })
     } catch (error) {
+      console.error("Login error:", error);
       res.status(500).json({
         STATUS: "ERROR",
-        ERROR: error.message,
-      })
+        ERROR: "Error interno del servidor.",
+      });
     }
   },
 
   /**
    * Registrar un nuevo usuario
    */
-  register: async (req, res) => {
+ async register(req, res) {
     try {
-      const { username, password, nombre, rol } = req.body
+      const { username, password, nombre, rol } = req.body;
 
       if (!username || !password || !nombre) {
         return res.status(400).json({
@@ -71,76 +74,66 @@ const authController = {
       }
 
       // Verificar si el usuario ya existe
-      const usuarioExistente = await Usuario.getByUsername(username)
-      if (usuarioExistente.STATUS === "OK" && usuarioExistente.DATA.length > 0) {
+    const usuarioExistente = await Usuario.getByUsername(username);
+     if (usuarioExistente) {
         return res.status(400).json({
           STATUS: "ERROR",
           ERROR: "El nombre de usuario ya está en uso.",
-        })
+        });
       }
 
       // Crear el nuevo usuario
-      const result = await Usuario.create({
-        username,
-        password,
-        nombre,
-        rol,
-      })
+       const nuevoUsuario = await Usuario.create(username, password, nombre, rol);
 
-      if (result.STATUS !== "OK") {
-        return res.status(500).json({
-          STATUS: "ERROR",
-          ERROR: result.ERROR || "Error al crear el usuario.",
-        })
-      }
-
-      res.status(201).json({
+         return res.status(201).json({
         STATUS: "OK",
         MESSAGE: "Usuario creado correctamente.",
-      })
+        DATA: {
+          id: nuevoUsuario.id,
+          username: nuevoUsuario.username,
+          nombre: nuevoUsuario.nombre,
+          rol: nuevoUsuario.rol,
+        },
+      });
     } catch (error) {
+      console.error("Register error:", error);
       res.status(500).json({
         STATUS: "ERROR",
-        ERROR: error.message,
-      })
+        ERROR: "Error al crear el usuario.",
+      });
     }
   },
-
   /**
    * Verificar el token JWT
    */
-  verificarToken: async (req, res) => {
+  async verificarToken(req, res) {
     try {
-      const token = req.headers.authorization?.split(" ")[1]
+      const authHeader = req.headers.authorization;
 
-      if (!token) {
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({
           STATUS: "ERROR",
-          ERROR: "No se proporcionó token de autenticación.",
-        })
+          ERROR: "No se proporcionó token válido.",
+        });
       }
 
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET)
-        res.json({
-          STATUS: "OK",
-          DATA: {
-            usuario: decoded,
-          },
-        })
-      } catch (error) {
-        return res.status(401).json({
-          STATUS: "ERROR",
-          ERROR: "Token inválido o expirado.",
-        })
-      }
+      const token = authHeader.split(" ")[1];
+
+      const decoded = jwt.verify(token, JWT_SECRET);
+
+      res.json({
+        STATUS: "OK",
+        DATA: {
+          usuario: decoded,
+        },
+      });
     } catch (error) {
-      res.status(500).json({
+      console.error("Token verification error:", error);
+      return res.status(401).json({
         STATUS: "ERROR",
-        ERROR: error.message,
-      })
+        ERROR: "Token inválido o expirado.",
+      });
     }
-  },
+  }
 }
-
 module.exports = authController;
