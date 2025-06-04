@@ -19,20 +19,13 @@ var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs'); // Cambia 'html' por el motor de vistas que estés usando
-// Si estás usando un motor de plantillas como EJS, Pug, etc., puedes configurarlo aquí
-// Por ejemplo, si usas EJS:
-// app.set('view engine', 'ejs');
+app.set('view engine', 'ejs'); // Motor de vistas 
+
 // Configurar el middleware de layouts
 app.use(expressLayouts);
 
 // Establecer el layout predeterminado
 app.set('layout', 'layout/layoutPrincipal'); // layout.ejs será el archivo base
-
-
-// Configurar el motor de vistas o paginas. Depende del framework que uses
-// Si estás usando EJS, Pug, Handlebars, etc., ajusta el motor de vistas.
-// app.set('view engine', 'ejs'); // Ejemplo para EJS
 
 
 
