@@ -5,6 +5,7 @@ const maestrosRoutes = require('./maestros');
 const mastersRoutes = require('./masters');
 const materiasRoutes = require('./materias');
 const solicitudesRoutes = require('./solicitudes');
+const principalRoutes = require('./principal');
 
 const router = express.Router();
 
@@ -15,6 +16,7 @@ router.use("/maestros", maestrosRoutes);
 router.use("/asesores", asesoresRoutes);
 router.use("/solicitudes", solicitudesRoutes);
 router.use("/masters", mastersRoutes);
+router.use("/pagePrincipal", principalRoutes);
 
 module.exports = router;
 

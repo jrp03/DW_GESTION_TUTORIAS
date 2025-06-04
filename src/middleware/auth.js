@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken"
+const jwt = require("jsonwebtoken");
 
 // Clave secreta para verificar los tokens JWT
 const JWT_SECRET = process.env.JWT_SECRET || "clave_secreta_temporal"
@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "clave_secreta_temporal"
 /**
  * Middleware para verificar el token JWT
  */
-export const verificarToken = (req, res, next) => {
+const verificarToken = (req, res, next) => {
   // Obtener el token del encabezado de autorización
   const token = req.headers.authorization?.split(" ")[1]
 
@@ -34,7 +34,7 @@ export const verificarToken = (req, res, next) => {
  * Middleware para verificar roles
  * @param {string[]} roles - Roles permitidos
  */
-export const verificarRol = (roles) => {
+const verificarRol = (roles) => {
   return (req, res, next) => {
     if (!req.usuario) {
       return res.status(401).json({
@@ -53,3 +53,5 @@ export const verificarRol = (roles) => {
     next()
   }
 }
+
+module.exports = { verificarToken, verificarRol }

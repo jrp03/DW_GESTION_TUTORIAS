@@ -6,6 +6,10 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 const routes = require('./routes/index');
+const expressLayouts = require('express-ejs-layouts');
+
+// Importar el router principal
+var principalRouter = require('./routes/principal');
 
 var app = express();
 
@@ -15,6 +19,16 @@ var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs'); // Cambia 'html' por el motor de vistas que estés usando
+// Si estás usando un motor de plantillas como EJS, Pug, etc., puedes configurarlo aquí
+// Por ejemplo, si usas EJS:
+// app.set('view engine', 'ejs');
+// Configurar el middleware de layouts
+app.use(expressLayouts);
+
+// Establecer el layout predeterminado
+app.set('layout', 'layout/layoutPrincipal'); // layout.ejs será el archivo base
+
 
 // Configurar el motor de vistas o paginas. Depende del framework que uses
 // Si estás usando EJS, Pug, Handlebars, etc., ajusta el motor de vistas.
@@ -36,7 +50,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 // Servir archivos estáticos
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Configurar rutas de la API
 app.use("/api", routes)
@@ -74,6 +88,11 @@ app.get("/solicitudes", (req, res) => {
 app.get("/masters", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "masters.html"))
 })
+
+// app.get("/principal", (req, res) => {
+//   res.sendFile(path.join(__dirname, "views", "principal.html"));
+// });
+app.use("/principal", principalRouter);
 
 // Ruta para la página principal
 app.get("/", (req, res) => {
