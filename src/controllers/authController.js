@@ -12,8 +12,11 @@ const authController = {
   /**
    * Iniciar sesión 
    */
-  async login(req, res) {
-    await res.render('login.ejs'); // Acceso a usuarios
+async login(req, res) {
+    const errors = req.flash("error"); // O "errors", según cómo lo guardes en passport
+    await res.render('login.ejs', {
+        errors: errors && errors.length > 0 ? errors : []
+    });
 },
 
 

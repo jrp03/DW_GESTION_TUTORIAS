@@ -69,4 +69,6 @@ passport.deserializeUser(async (id, done) => {
 
 // Modelo que permite redifeccionar a una pagina solo si esta usuario activo
 
+
+
 }

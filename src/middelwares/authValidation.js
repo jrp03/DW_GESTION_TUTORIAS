@@ -23,7 +23,17 @@ const erroresDeValidacion = (req, res, next) => {
   }
   next(); // continuar si no hay errores
 };
+
+function isAuthenticate(req, res, next) {
+  if (req.isAuthenticated()) { 
+    return next();
+  }
+  res.redirect('/login');
+}
+
+
 module.exports = {
     validarRegistro,
-    erroresDeValidacion
+    erroresDeValidacion,
+    isAuthenticate
 }

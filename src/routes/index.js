@@ -6,21 +6,35 @@ const auth = require('../middelwares/authValidation');
 // const { resolveInclude } = require('ejs');
 require('../middelwares/passporController')(passport);
 
+// Router de paginas privadas
+const maestrosRoutes = require('./maestros');
+const asesoresRoutes = require('./asesores');
+const mastersRoutes = require('./masters');
+const materiasRoutes = require('./materias');
+const solicitudesRoutes = require('./solicitudes');
+const principalRoutes = require('./principal');
+
+
+// Acceder a pagina de inicio
 router.get('/', (req, res) => {
     res.render('index.ejs');
 });
 
-router.get('/login', authController.login); // Accede a la pagina de inicio de sesion);
+// Acceso a paginas de validacion
+router.get('/login', authController.login); // Accede a la pagina inicio de sesion
 
-router.post('/login', passport.authenticate('local-login',{
+// Valida que el usuario este registrado
+router.post('/login', auth.validarRegistro, passport.authenticate('local-login',{
     successRedirect: '/principal',
     failureRedirect: '/login',
     successFlash: true,
     failureFlash: true
 }));
 
+// Acceso a la pagina de registro
 router.get('/register', authController.register); // Accede a la pagina de registro
 
+// Registro de usuario
 router.post('/register', auth.validarRegistro,auth.erroresDeValidacion, passport.authenticate('local-register', {
     successRedirect: '/login',
     failureRedirect: '/register',
@@ -28,12 +42,26 @@ router.post('/register', auth.validarRegistro,auth.erroresDeValidacion, passport
     failureFlash: true
 }));
 
-// ------ Rutas privadas
-
-router.get('/principal', (req, res, next) => {
-    res.render('principal.ejs');
+// Cerrar sesion
+router.get('/Salir', (req, res, next) => {
+    req.logout(function(err) {
+        if (err) { return next(err); }
+        res.redirect('/');
+    });
 });
 
+// ------ Rutas privadas
+
+//router.get('/principal', auth.isAuthenticate ,(req, res, next) => {
+//    res.render('principal.ejs');
+//});
+
+router.use("/materias", materiasRoutes);
+router.use("/maestros", maestrosRoutes);
+router.use("/asesores", asesoresRoutes);
+router.use("/solicitudes", solicitudesRoutes);
+router.use("/masters", mastersRoutes);
+router.use("/principal", principalRoutes);
 
 
 module.exports = router;
