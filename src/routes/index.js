@@ -7,11 +7,6 @@ const auth = require('../middelwares/authValidation');
 require('../middelwares/passporController')(passport);
 
 // Router de paginas privadas
-const maestrosRoutes = require('./maestros');
-const asesoresRoutes = require('./asesores');
-const mastersRoutes = require('./masters');
-const materiasRoutes = require('./materias');
-const solicitudesRoutes = require('./solicitudes');
 const principalRoutes = require('./principal');
 
 
@@ -51,17 +46,15 @@ router.get('/Salir', (req, res, next) => {
 });
 
 // ------ Rutas privadas
-
-//router.get('/principal', auth.isAuthenticate ,(req, res, next) => {
-//    res.render('principal.ejs');
-//});
-
-router.use("/materias", materiasRoutes);
-router.use("/maestros", maestrosRoutes);
-router.use("/asesores", asesoresRoutes);
-router.use("/solicitudes", solicitudesRoutes);
-router.use("/masters", mastersRoutes);
 router.use("/principal", principalRoutes);
+
+//-- Estar rutas son secundarias a la pagina principal. 
+// router.use("/materias", materiasRoutes);
+// router.use("/maestros", maestrosRoutes);
+// router.use("/asesores", asesoresRoutes);
+// router.use("/solicitudes", solicitudesRoutes);
+// router.use("/masters", mastersRoutes);
+
 
 
 module.exports = router;
