@@ -14,9 +14,10 @@ var app = express();
 
 
 // Configuración del motor de plantillas EJS
-app.set('views', path.join(__dirname, '/views')); // Directorio de vistas
 app.engine('ejs', engine);
 app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '/views')); // Directorio de vistas
+app.use(express.static(path.join(__dirname, '../public')));
 
 // middleware para servir archivos estáticos
 app.use(logger('dev'));
