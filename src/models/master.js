@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 const Database = require('../db.js');
+=======
+const {pool} = require('../db.js');
+>>>>>>> prueba-validacion
 
 class Master {
   /**

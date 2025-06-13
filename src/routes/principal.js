@@ -1,10 +1,38 @@
 const express = require('express');
 const router = express.Router()
+<<<<<<< HEAD
 const path = require('path'); 3
 
 router.get("/", (req, res) => {
     res.render('principal', { title: 'Principal' });
 });
+=======
+const path = require('path'); 
+const auth = require('../middelwares/authValidation')
+
+// Routes a opciones dentro de pagina principal
+const maestrosRoutes = require('./maestros');
+const asesoresRoutes = require('./asesores');
+const mastersRoutes = require('./masters');
+const materiasRoutes = require('./materias');
+const solicitudesRoutes = require('./solicitudes');
+
+
+// Ruta pagina Raiz de principal ya autenticada; link acceso localhost(puerto)/principal/
+router.get('/', auth.isAuthenticate ,(req, res, next) => {
+    res.render('principal.ejs', { title: 'Principal' });
+});
+
+// Redirecciones a acceso para peticiones CRUD de cada pagina
+router.use("/materias", materiasRoutes); // link acceso localhost(puerto)/principal/materias
+router.use("/maestros", maestrosRoutes); // link acceso localhost(puerto)/principal/maestros
+router.use("/asesores", asesoresRoutes); // link acceso localhost(puerto)/principal/asesores
+router.use("/solicitudes", solicitudesRoutes); // link acceso localhost(puerto)/principal/solicitudes
+router.use("/masters", mastersRoutes); // link acceso localhost(puerto)/principal/masters
+
+
+// 
+>>>>>>> prueba-validacion
 router.get("/materias", (req, res) => {
     res.render('materias', { title: 'Materias' });
 });
@@ -24,4 +52,8 @@ router.get("/gestion_asesores", (req, res) => {
     res.render('gestion_asesores', { title: 'Gestion De Asesores' })
 });
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> prueba-validacion
 module.exports = router;

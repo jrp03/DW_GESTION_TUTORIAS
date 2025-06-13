@@ -4,14 +4,21 @@ header {
     background: #333;
     display: flex;
     /* align-items: center; */
+<<<<<<< HEAD
 
+=======
+>>>>>>> prueba-validacion
     flex-direction: column;
 }
 
 header{
     background: #1B69AD;
     position: sticky;
+<<<<<<< HEAD
     top: 0;
+=======
+    top: 10;
+>>>>>>> prueba-validacion
     left: 0;
     color: #fff;
     /* border-bottom: 1px solid #fff; */
@@ -29,6 +36,15 @@ header{
     gap: 10px;
     align-items: center;
 }
+<<<<<<< HEAD
+=======
+.left img {
+    max-width: 100px; /* puedes ajustar este valor según el diseño */
+    height: auto;     /* mantiene la proporción */
+    object-fit: contain; /* asegura que se vea completo si hay restricciones */
+}
+
+>>>>>>> prueba-validacion
 .right-content ul{
     display: flex;
     align-items: center;
