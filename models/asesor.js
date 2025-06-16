@@ -1,101 +1,78 @@
-import Database from "../config/database.js"
+import db from "../config/database.js";
 
-class Asesor {
-  /**
-   * Obtener todos los asesores (alumnos)
-   * @returns {Promise<Object>} Resultado de la consulta
-   */
+export class Asesor {
   static async getAll() {
-    const db = Database.getInstance()
-    const sql = "SELECT * FROM alumnos"
-    return await db.get_data(sql)
+    return await db.query('SELECT * FROM alumnos');
   }
 
-  /**
-   * Obtener un asesor por su ID
-   * @param {string} id_alumno - ID del alumno
-   * @returns {Promise<Object>} Resultado de la consulta
-   */
   static async getById(id_alumno) {
-    const db = Database.getInstance()
-    const sql = "SELECT * FROM alumnos WHERE id_alumno = ?"
-    return await db.get_data(sql, [id_alumno])
+    return await db.query(
+      'SELECT * FROM alumnos WHERE id_alumno = @id',
+      { id: id_alumno }
+    );
   }
 
-  /**
-   * Crear un nuevo asesor
-   * @param {Object} asesor - Datos del asesor
-   * @returns {Promise<Object>} Resultado de la operación
-   */
   static async create(asesor) {
-    const db = Database.getInstance()
-    const sql =
-      "INSERT INTO alumnos (id_alumno, nombre, apellido, telefono, correo, maestro, carrera, materia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-    return await db.exec(sql, [
-      asesor.id_alumno,
-      asesor.nombre,
-      asesor.apellido,
-      asesor.telefono,
-      asesor.correo,
-      asesor.maestro,
-      asesor.carrera,
-      asesor.materia,
-    ])
+    return await db.query(
+      `INSERT INTO alumnos 
+      (id_alumno, nombre, apellido, telefono, correo, maestro, carrera, materia) 
+      VALUES 
+      (@id, @nombre, @apellido, @telefono, @correo, @maestro, @carrera, @materia)`,
+      {
+        id: asesor.id_alumno,
+        nombre: asesor.nombre,
+        apellido: asesor.apellido,
+        telefono: asesor.telefono,
+        correo: asesor.correo,
+        maestro: asesor.maestro,
+        carrera: asesor.carrera,
+        materia: asesor.materia
+      }
+    );
   }
 
-  /**
-   * Actualizar un asesor existente
-   * @param {Object} asesor - Datos del asesor
-   * @returns {Promise<Object>} Resultado de la operación
-   */
   static async update(asesor) {
-    const db = Database.getInstance()
-    const sql =
-      "UPDATE alumnos SET nombre = ?, apellido = ?, telefono = ?, correo = ?, maestro = ?, carrera = ?, materia = ? WHERE id_alumno = ?"
-    return await db.exec(sql, [
-      asesor.nombre,
-      asesor.apellido,
-      asesor.telefono,
-      asesor.correo,
-      asesor.maestro,
-      asesor.carrera,
-      asesor.materia,
-      asesor.id_alumno,
-    ])
+    return await db.query(
+      `UPDATE alumnos SET 
+      nombre = @nombre, 
+      apellido = @apellido, 
+      telefono = @telefono, 
+      correo = @correo, 
+      maestro = @maestro, 
+      carrera = @carrera, 
+      materia = @materia 
+      WHERE id_alumno = @id`,
+      {
+        nombre: asesor.nombre,
+        apellido: asesor.apellido,
+        telefono: asesor.telefono,
+        correo: asesor.correo,
+        maestro: asesor.maestro,
+        carrera: asesor.carrera,
+        materia: asesor.materia,
+        id: asesor.id_alumno
+      }
+    );
   }
 
-  /**
-   * Eliminar un asesor
-   * @param {string} id_alumno - ID del alumno
-   * @returns {Promise<Object>} Resultado de la operación
-   */
   static async delete(id_alumno) {
-    const db = Database.getInstance()
-    const sql = "DELETE FROM alumnos WHERE id_alumno = ?"
-    return await db.exec(sql, [id_alumno])
+    return await db.query(
+      'DELETE FROM alumnos WHERE id_alumno = @id',
+      { id: id_alumno }
+    );
   }
 
-  /**
-   * Obtener todas las materias (para el select)
-   * @returns {Promise<Array>} Lista de materias
-   */
   static async getMaterias() {
-    const db = Database.getInstance()
-    const sql = "SELECT id_materia, nombre_materia FROM materias"
-    const result = await db.get_data(sql)
-    return result.DATA
+    const result = await db.query(
+      'SELECT id_materia, nombre_materia FROM materias'
+    );
+    return result.success ? result.data : [];
   }
 
-  /**
-   * Obtener todos los maestros (para el select)
-   * @returns {Promise<Array>} Lista de maestros
-   */
   static async getMaestros() {
-    const db = Database.getInstance()
-    const sql = "SELECT id_maestro, nombres, apellidos FROM maestros"
-    const result = await db.get_data(sql)
-    return result.DATA
+    const result = await db.query(
+      'SELECT id_maestro, nombres, apellidos FROM maestros'
+    );
+    return result.success ? result.data : [];
   }
 }
-
-export default Asesor

@@ -1,154 +1,427 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Asesores</title>
+    <title>Registro de Asesores | Sistema Académico</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-</head>
-<body class="text-bg-dark">
-<div class="container">
-    <div class="row">
-        <div class="col-md-4 offset-md-4">
-            <h2>Registro de ASESORES</h2>
-            <input class="form-control" type="text" placeholder="ID Alumno" id="id_alumno">
-            <input class="form-control" type="text" placeholder="Nombre" id="nombre">
-            <input class="form-control" type="text" placeholder="Apellido" id="apellido">
-            <input class="form-control" type="text" placeholder="Teléfono" id="telefono">
-            <input class="form-control" type="email" placeholder="Correo" id="correo">
-
-            <!-- Menú desplegable para maestros -->
-            <select class="form-control" id="maestro">
-                <option value="">Seleccione un maestro</option>
-            </select>
-
-            <select class="form-control" id="carrera" >
-                <option value="" selected disabled>Selecciona una carrera</option>
-                <option value="ITSE">Licenciatura en Ingeniería en Telecomunicaciones, Sistemas y Electrónica (ITSE)</option>
-                <option value="Informatica">Licenciatura en Informática</option>
-                <option value="InformaticaVirtual">Licenciatura en Informática (Modalidad Virtual)</option>
-            </select>
-
-            <!-- Menú desplegable para materias -->
-            <select class="form-control" id="materia">
-                <option value="">Seleccione una materia</option>
-            </select>
-
-            <br>
-            <div class="col-auto">
-                <button class="btn btn-success mb-3" id="Guardar">Guardar</button>
-                <button class="btn btn-primary mb-3" id="Listado">Listado</button>
-                <button class="btn btn-warning mb-3" id="editar">Editar</button>
-                <button class="btn btn-danger mb-3" id="eliminar">Eliminar</button>
-                <a href="/" class="btn btn-secondary mb-3">Volver al Inicio</a>
-            </div>
-            <div id="Respuesta"></div>
-        </div>
-    </div>
-
-    <!-- Tabla de listado -->
-    <div class="row">
-        <div class="col-md-8 offset-md-2" id="DivListado" style="display: none;">
-            <table class="table table-dark" id="tableListado">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>ID Alumno</th>
-                        <th>Nombre</th>
-                        <th>Apellido</th>
-                        <th>Teléfono</th>
-                        <th>Correo</th>
-                        <th>Maestro</th>
-                        <th>Carrera</th>
-                        <th>Materia</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --dark-color: #2b2d42;
+            --light-color: #f8f9fa;
+            --success-color: #4cc9f0;
+            --warning-color: #f8961e;
+            --danger-color: #f72585;
+        }
         
+        body {
+            background-color: #f5f7ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.25);
+            transform: translateY(-5px);
+        }
+        
+        .navbar-glass {
+            background: rgba(67, 97, 238, 0.85) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(72, 149, 239, 0.25);
+        }
+        
+        .btn-modern {
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-modern::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-100%);
+            transition: all 0.3s;
+        }
+        
+        .btn-modern:hover::after {
+            transform: translateX(0);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .table-modern {
+            --bs-table-bg: transparent;
+            --bs-table-striped-bg: rgba(67, 97, 238, 0.05);
+            --bs-table-hover-bg: rgba(67, 97, 238, 0.1);
+        }
+        
+        .table-modern thead {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .floating-label {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .floating-label label {
+            position: absolute;
+            top: 12px;
+            left: 15px;
+            color: #6c757d;
+            transition: all 0.3s;
+            pointer-events: none;
+            background: white;
+            padding: 0 5px;
+        }
+        
+        .floating-label input:focus + label,
+        .floating-label input:not(:placeholder-shown) + label,
+        .floating-label select:focus + label,
+        .floating-label select:not([value=""]) + label {
+            top: -10px;
+            left: 10px;
+            font-size: 12px;
+            color: var(--primary-color);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        #Respuesta {
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .section-title {
+            position: relative;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            color: var(--dark-color);
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar Moderno -->
+    <nav class="navbar navbar-glass navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <i class="fas fa-user-graduate me-2"></i>
+                <span class="fw-bold">Sistema Académico</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="avatar me-3">aqui se supone que va el</div>
+                <button id="logoutBtn" class="btn btn-outline-light">
+                    <i class="fas fa-sign-out-alt me-1"></i> Salir
+                </button>
+            </div>
+        </div>
+    </nav>
 
-<script>
-$(document).ready(function() {
-    cargarMaestros();
-    cargarMaterias();
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Tarjeta de Formulario -->
+                <div class="glass-card p-4 p-md-5 mb-5">
+                    <h2 class="section-title">Registro de Asesores</h2>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="floating-label">
+                                <input class="form-control" type="text" id="id_alumno" placeholder=" ">
+                                <label for="id_alumno">ID Alumno</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating-label">
+                                <input class="form-control" type="text" id="nombre" placeholder=" ">
+                                <label for="nombre">Nombre</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating-label">
+                                <input class="form-control" type="text" id="apellido" placeholder=" ">
+                                <label for="apellido">Apellido</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating-label">
+                                <input class="form-control" type="text" id="telefono" placeholder=" ">
+                                <label for="telefono">Teléfono</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="floating-label">
+                                <input class="form-control" type="email" id="correo" placeholder=" ">
+                                <label for="correo">Correo Electrónico</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating-label">
+                                <select class="form-select" id="maestro">
+                                    <option value=""></option>
+                                    <option value="" disabled selected>Seleccione un maestro</option>
+                                </select>
+                                <label for="maestro">Maestro Asignado</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating-label">
+                                <select class="form-select" id="carrera">
+                                    <option value=""></option>
+                                    <option value="" disabled selected>Seleccione una carrera</option>
+                                    <option value="ITSE">Lic. en Ingeniería en Telecomunicaciones, Sistemas y Electrónica</option>
+                                    <option value="Informatica">Lic. en Informática</option>
+                                    <option value="InformaticaVirtual">Lic. en Informática (Virtual)</option>
+                                </select>
+                                <label for="carrera">Carrera</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="floating-label">
+                                <select class="form-select" id="materia">
+                                    <option value=""></option>
+                                    <option value="" disabled selected>Seleccione una materia</option>
+                                </select>
+                                <label for="materia">Materia</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <div class="d-flex flex-wrap justify-content-center gap-3">
+                                <button class="btn btn-success btn-modern" id="Guardar">
+                                    <i class="fas fa-save me-2"></i>Guardar
+                                </button>
+                                <button class="btn btn-primary btn-modern" id="Listado">
+                                    <i class="fas fa-list me-2"></i>Mostrar Listado
+                                </button>
+                                <button class="btn btn-warning btn-modern" id="editar">
+                                    <i class="fas fa-edit me-2"></i>Editar
+                                </button>
+                                <button class="btn btn-danger btn-modern" id="eliminar">
+                                    <i class="fas fa-trash-alt me-2"></i>Eliminar
+                                </button>
+                                <a href="/" class="btn btn-secondary btn-modern">
+                                    <i class="fas fa-home me-2"></i>Inicio
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="Respuesta" class="text-center mt-4"></div>
+                </div>
 
-    function cargarMaestros() {
-        $.get("/api/asesores/maestros", function(data) {
-            let maestros = data;
-            let opciones = "<option value=''>Seleccione un maestro</option>";
-            $.each(maestros.DATA, function(_, maestro) {
-                opciones += `<option value="${maestro.id_maestro}">${maestro.nombres} ${maestro.apellidos}</option>`;
-            });
-            $("#maestro").html(opciones);
+                <!-- Tarjeta de Listado -->
+                <div class="glass-card p-4" id="DivListado" style="display: none;">
+                    <h3 class="section-title">Listado de Asesores</h3>
+                    <div class="table-responsive">
+                        <table class="table table-modern table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>ID Alumno</th>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>Teléfono</th>
+                                    <th>Correo</th>
+                                    <th>Maestro</th>
+                                    <th>Carrera</th>
+                                    <th>Materia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="table-group-divider"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    $(document).ready(function() {
+        // Verificar autenticación
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+
+        // Manejar logout
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
         });
-    }
 
-    function cargarMaterias() {
-        $.get("/api/asesores/materias", function(data) {
-            let materias = data;
-            let opciones = "<option value=''>Seleccione una materia</option>";
-            $.each(materias.DATA, function(_, materia) {
-                opciones += `<option value="${materia.id_materia}">${materia.nombre_materia}</option>`;
+        // Funcionalidad original
+        cargarMaestros();
+        cargarMaterias();
+
+        function cargarMaestros() {
+            $.get("/api/asesores/maestros", function(data) {
+                let maestros = data;
+                let opciones = "<option value='' disabled selected>Seleccione un maestro</option>";
+                $.each(maestros.DATA, function(_, maestro) {
+                    opciones += `<option value="${maestro.id_maestro}">${maestro.nombres} ${maestro.apellidos}</option>`;
+                });
+                $("#maestro").html(opciones);
             });
-            $("#materia").html(opciones);
-        });
-    }
+        }
 
-    $("#Guardar").click(function() {
-        $.post("/api/asesores/guardar", {
-            id_alumno: $("#id_alumno").val(),
-            nombre: $("#nombre").val(),
-            apellido: $("#apellido").val(),
-            telefono: $("#telefono").val(),
-            correo: $("#correo").val(),
-            maestro: $("#maestro").val(),
-            carrera: $("#carrera").val(),
-            materia: $("#materia").val()
-        }, function(data) {
-            $("#Respuesta").html(data);
+        function cargarMaterias() {
+            $.get("/api/asesores/materias", function(data) {
+                let materias = data;
+                let opciones = "<option value='' disabled selected>Seleccione una materia</option>";
+                $.each(materias.DATA, function(_, materia) {
+                    opciones += `<option value="${materia.id_materia}">${materia.nombre_materia}</option>`;
+                });
+                $("#materia").html(opciones);
+            });
+        }
+
+        $("#Guardar").click(function() {
+            $.post("/api/asesores/guardar", {
+                id_alumno: $("#id_alumno").val(),
+                nombre: $("#nombre").val(),
+                apellido: $("#apellido").val(),
+                telefono: $("#telefono").val(),
+                correo: $("#correo").val(),
+                maestro: $("#maestro").val(),
+                carrera: $("#carrera").val(),
+                materia: $("#materia").val()
+            }, function(data) {
+                $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
+                mostrarListado();
+                limpiarFormulario();
+            }).fail(function() {
+                $("#Respuesta").html('<div class="alert alert-danger">Error al guardar los datos</div>').fadeIn().delay(3000).fadeOut();
+            });
+        });
+
+        // Mostrar listado
+        $("#Listado").click(function() {
             mostrarListado();
         });
-    });
 
-    // Mostrar listado
-    $("#Listado").click(function() {
-        mostrarListado();
-    });
+        function mostrarListado() {
+            $("#DivListado").slideDown();
+            $.get("/api/asesores", function(data) {
+                if (data.DATA.length > 0) {
+                    let html = "";
+                    $.each(data.DATA, function(index, value) {
+                        html += `<tr>
+                                   <td>${index + 1}</td>
+                                   <td>${value.id_alumno}</td>
+                                   <td>${value.nombre}</td>
+                                   <td>${value.apellido}</td>
+                                   <td>${value.telefono}</td>
+                                   <td><a href="mailto:${value.correo}">${value.correo}</a></td>
+                                   <td>${value.maestro}</td>
+                                   <td><span class="badge bg-primary">${value.carrera}</span></td>
+                                   <td>${value.materia}</td>
+                                 </tr>`;
+                    });
+                    $("#tableBody").html(html);
+                } else {
+                    $("#tableBody").html(`<tr><td colspan="9" class="text-center py-4 text-muted">
+                        <i class="fas fa-info-circle me-2"></i>No hay registros disponibles
+                    </td></tr>`);
+                }
+            });
+        }
 
-    function mostrarListado() {
-        $("#DivListado").show();
-        $.get("/api/asesores", function(data) {
-            if (data.DATA.length > 0) {
-                let html = "";
-                $.each(data.DATA, function(index, value) {
-                    html += `<tr>
-                               <td>${index + 1}</td>
-                               <td>${value.id_alumno}</td>
-                               <td>${value.nombre}</td>
-                               <td>${value.apellido}</td>
-                               <td>${value.telefono}</td>
-                               <td>${value.correo}</td>
-                               <td>${value.maestro}</td>
-                               <td>${value.carrera}</td>
-                               <td>${value.materia}</td>
-                             </tr>`;
-                });
-                $("#tableBody").html(html);
-            } else {
-                $("#tableBody").html("<tr><td colspan='9'>No hay registros disponibles</td></tr>");
+        function limpiarFormulario() {
+            $("#id_alumno, #nombre, #apellido, #telefono, #correo").val('');
+            $("#maestro, #carrera, #materia").val('').trigger('change');
+        }
+
+        // Editar registro
+        $("#editar").click(function() {
+            let id_alumno = $("#id_alumno").val();
+            if (!id_alumno) {
+                id_alumno = prompt("Ingresa el ID del alumno a editar:");
+                if (!id_alumno) return;
             }
-        });
-    }
 
-    // Editar registro
-    $("#editar").click(function() {
-        let id_alumno = prompt("Ingresa el ID del alumno a editar:");
-        if (id_alumno) {
             $.post("/api/asesores/editar", {
                 id_alumno: id_alumno,
                 nombre: $("#nombre").val(),
@@ -159,23 +432,32 @@ $(document).ready(function() {
                 carrera: $("#carrera").val(),
                 materia: $("#materia").val()
             }, function(data) {
-                $("#Respuesta").html(data);
+                $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
                 mostrarListado();
+            }).fail(function() {
+                $("#Respuesta").html('<div class="alert alert-danger">Error al editar el registro</div>').fadeIn().delay(3000).fadeOut();
             });
-        }
-    });
+        });
 
-    // Eliminar registro
-    $("#eliminar").click(function() {
-        let id_alumno = prompt("Ingresa el ID del alumno a eliminar:");
-        if (id_alumno) {
-            $.post("/api/asesores/eliminar", { id_alumno: id_alumno }, function(data) {
-                $("#Respuesta").html(data);
-                mostrarListado();
-            });
-        }
+        // Eliminar registro
+        $("#eliminar").click(function() {
+            let id_alumno = $("#id_alumno").val();
+            if (!id_alumno) {
+                id_alumno = prompt("Ingresa el ID del alumno a eliminar:");
+                if (!id_alumno) return;
+            }
+
+            if (confirm(`¿Estás seguro de eliminar el registro con ID ${id_alumno}?`)) {
+                $.post("/api/asesores/eliminar", { id_alumno: id_alumno }, function(data) {
+                    $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
+                    mostrarListado();
+                    limpiarFormulario();
+                }).fail(function() {
+                    $("#Respuesta").html('<div class="alert alert-danger">Error al eliminar el registro</div>').fadeIn().delay(3000).fadeOut();
+                });
+            }
+        });
     });
-});
-</script>
+    </script>
 </body>
 </html>

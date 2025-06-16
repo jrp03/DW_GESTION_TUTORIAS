@@ -1,15 +1,33 @@
-import express from "express"
-import solicitudesController from "../controllers/solicitudesController.js"
+import express from "express";
+import {
+  getAll,
+  getById,
+  getByEstado,
+  getByAlumno,
+  getByAsesor,
+  getByMateria
+} from "../controllers/solicitudesController.js";
 
-const router = express.Router()
+const router = express.Router();
 
-// Rutas para el módulo de solicitudes
-router.get("/", solicitudesController.getAll)
-router.get("/materias", solicitudesController.getMaterias)
-router.get("/asesores", solicitudesController.getAsesores)
-router.get("/:id", solicitudesController.getById)
-router.post("/guardar", solicitudesController.create)
-router.post("/editar", solicitudesController.update)
-router.post("/eliminar", solicitudesController.delete)
+// Rutas principales
+router.get("/", getAll);
+router.get("/:id", getById);
 
-export default router
+// Rutas adicionales
+router.get("/estado/:estado", getByEstado);
+router.get("/alumno/:idAlumno", getByAlumno);
+router.get("/asesor/:idAsesor", getByAsesor);
+router.get("/materia/:idMateria", getByMateria);
+
+// Middleware de errores
+router.use((err, req, res, next) => {
+  console.error('Error en ruta solicitudes:', err);
+  res.status(500).json({ 
+    STATUS: "ERROR", 
+    ERROR: "Error en gestión de solicitudes",
+    DETAILS: err.message
+  });
+});
+
+export default router;
