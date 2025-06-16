@@ -1,88 +1,120 @@
-import Database from "../config/database.js"
+import db from "../config/database.js";
 
-class Maestro {
-  /**
-   * Obtener todos los maestros
-   * @returns {Promise<Object>} Resultado de la consulta
-   */
+export class Maestro {
+  
   static async getAll() {
-    const db = Database.getInstance()
-    const sql = "SELECT * FROM maestros"
-    return await db.get_data(sql)
+    try {
+      const [data] = await db.query('SELECT * FROM maestros');
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 
-  /**
-   * Obtener un maestro por su ID
-   * @param {string} id_maestro - ID del maestro
-   * @returns {Promise<Object>} Resultado de la consulta
-   */
+ 
   static async getById(id_maestro) {
-    const db = Database.getInstance()
-    const sql = "SELECT * FROM maestros WHERE id_maestro = ?"
-    return await db.get_data(sql, [id_maestro])
+    try {
+      const [rows] = await db.query(
+        'SELECT * FROM maestros WHERE id_maestro = ?', 
+        [id_maestro]
+      );
+      return { success: true, data: rows[0] || null };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 
-  /**
-   * Crear un nuevo maestro
-   * @param {Object} maestro - Datos del maestro
-   * @returns {Promise<Object>} Resultado de la operación
-   */
+ 
   static async create(maestro) {
-    const db = Database.getInstance()
-    const sql =
-      "INSERT INTO maestros (id_maestro, nombres, apellidos, materia, carrera, telefono, correo) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    return await db.exec(sql, [
-      maestro.id_maestro,
-      maestro.nombres,
-      maestro.apellidos,
-      maestro.materia,
-      maestro.carrera,
-      maestro.telefono,
-      maestro.correo,
-    ])
+    try {
+      const { id_maestro, nombres, apellidos, materia, carrera, telefono, correo } = maestro;
+      await db.query(
+        `INSERT INTO maestros 
+        (id_maestro, nombres, apellidos, materia, carrera, telefono, correo) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [id_maestro, nombres, apellidos, materia, carrera, telefono, correo]
+      );
+      return { success: true, data: maestro };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 
-  /**
-   * Actualizar un maestro existente
-   * @param {Object} maestro - Datos del maestro
-   * @returns {Promise<Object>} Resultado de la operación
-   */
+ 
   static async update(maestro) {
-    const db = Database.getInstance()
-    const sql =
-      "UPDATE maestros SET nombres = ?, apellidos = ?, materia = ?, carrera = ?, telefono = ?, correo = ? WHERE id_maestro = ?"
-    return await db.exec(sql, [
-      maestro.nombres,
-      maestro.apellidos,
-      maestro.materia,
-      maestro.carrera,
-      maestro.telefono,
-      maestro.correo,
-      maestro.id_maestro,
-    ])
+    try {
+      const { id_maestro, nombres, apellidos, materia, carrera, telefono, correo } = maestro;
+      await db.query(
+        `UPDATE maestros SET 
+        nombres = ?, 
+        apellidos = ?, 
+        materia = ?, 
+        carrera = ?, 
+        telefono = ?, 
+        correo = ? 
+        WHERE id_maestro = ?`,
+        [nombres, apellidos, materia, carrera, telefono, correo, id_maestro]
+      );
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 
-  /**
-   * Eliminar un maestro
-   * @param {string} id_maestro - ID del maestro
-   * @returns {Promise<Object>} Resultado de la operación
-   */
+ 
   static async delete(id_maestro) {
-    const db = Database.getInstance()
-    const sql = "DELETE FROM maestros WHERE id_maestro = ?"
-    return await db.exec(sql, [id_maestro])
+    try {
+      await db.query('DELETE FROM maestros WHERE id_maestro = ?', [id_maestro]);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 
-  /**
-   * Obtener todas las materias (para el select)
-   * @returns {Promise<Array>} Lista de materias
-   */
-  static async getMaterias() {
-    const db = Database.getInstance()
-    const sql = "SELECT id_materia, nombre_materia FROM materias"
-    const result = await db.get_data(sql)
-    return result.DATA
+ 
+  static async getMateriasByMaestro(id_maestro) {
+    try {
+      const [data] = await db.query(
+        `SELECT m.* FROM materias m
+         JOIN maestro_materia mm ON m.id_materia = mm.id_materia
+         WHERE mm.id_maestro = ?`,
+        [id_maestro]
+      );
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  
+  static async getByCarrera(carrera) {
+    try {
+      const [data] = await db.query(
+        'SELECT * FROM maestros WHERE carrera = ?',
+        [carrera]
+      );
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+ 
+  static async partialUpdate(id_maestro, updates) {
+    try {
+      const setClause = Object.keys(updates)
+        .map(key => `${key} = ?`)
+        .join(', ');
+      
+      const values = [...Object.values(updates), id_maestro];
+      
+      await db.query(
+        `UPDATE maestros SET ${setClause} WHERE id_maestro = ?`,
+        values
+      );
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 }
-
-export default Maestro

@@ -1,13 +1,31 @@
-import express from "express"
-import materiasController from "../controllers/materiasController.js"
+import express from "express";
+import {
+  getAllMaterias,
+  getMateriaById,
+  createMateria,
+  updateMateria,
+  deleteMateria,
+  getMateriasByCarrera,
+  getMateriasByMaestro
+} from "../controllers/materiasController.js";
 
-const router = express.Router()
+const router = express.Router();
 
-// Rutas para el módulo de materias
-router.get("/", materiasController.getAll)
-router.get("/:id", materiasController.getById)
-router.post("/guardar", materiasController.create)
-router.post("/editar", materiasController.update)
-router.post("/eliminar", materiasController.delete)
+// CRUD básico
+router.get("/", getAllMaterias);
+router.get("/:id", getMateriaById);
+router.post("/", createMateria);
+router.put("/:id", updateMateria);
+router.delete("/:id", deleteMateria);
 
-export default router
+// Rutas especiales
+router.get("/carrera/:carrera", getMateriasByCarrera);
+router.get("/maestro/:idMaestro", getMateriasByMaestro);
+
+// Middleware de errores
+router.use((err, req, res, next) => {
+  console.error('Error en ruta materias:', err);
+  res.status(500).json({ error: "Error interno del servidor" });
+});
+
+export default router;

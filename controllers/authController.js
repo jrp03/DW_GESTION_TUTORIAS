@@ -1,146 +1,111 @@
-import jwt from "jsonwebtoken"
-import Usuario from "../models/usuario.js"
+import jwt from "jsonwebtoken";
+import { Usuario } from "../models/usuario.js";
 
-// Clave secreta para firmar los tokens JWT
-const JWT_SECRET = process.env.JWT_SECRET || "clave_secreta_temporal"
+const JWT_SECRET = process.env.JWT_SECRET || "clave_secreta_temporal";
 
-// Controlador para la autenticación
-const authController = {
-  /**
-   * Iniciar sesión
-   */
+export const authController = {
   login: async (req, res) => {
     try {
-      const { username, password } = req.body
-
+      const { username, password } = req.body;
+      
       if (!username || !password) {
-        return res.status(400).json({
-          STATUS: "ERROR",
-          ERROR: "Por favor, proporciona nombre de usuario y contraseña.",
-        })
+        return res.status(400).json({ error: "Usuario y contraseña requeridos" });
       }
 
-      const usuario = await Usuario.verificarCredenciales(username, password)
-
+      const usuario = await Usuario.verificarCredenciales(username, password);
       if (!usuario) {
-        return res.status(401).json({
-          STATUS: "ERROR",
-          ERROR: "Credenciales inválidas.",
-        })
+        return res.status(401).json({ error: "Credenciales inválidas" });
       }
 
-      // Generar token JWT
       const token = jwt.sign(
         { id: usuario.id, username: usuario.username, rol: usuario.rol },
         JWT_SECRET,
-        { expiresIn: "8h" }, // El token expira en 8 horas
-      )
+        { expiresIn: "8h" }
+      );
+
+      res.json({
+        token,
+        usuario: {
+          id: usuario.id,
+          username: usuario.username,
+          nombre: usuario.nombre,
+          rol: usuario.rol
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  register: async (req, res) => {
+    try {
+      const { username, password, nombre, rol } = req.body;
+      
+      if (!username || !password || !nombre) {
+        return res.status(400).json({ error: "Todos los campos son requeridos" });
+      }
+
+      const usuarioExistente = await Usuario.getByUsername(username);
+      if (usuarioExistente.data?.length > 0) {
+        return res.status(400).json({ error: "El usuario ya existe" });
+      }
+
+      const result = await Usuario.create({ username, password, nombre, rol });
+      if (result.success) {
+        res.status(201).json({ message: "Usuario registrado" });
+      } else {
+        res.status(400).json({ error: result.error });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  verifyToken: (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    
+    if (!token) {
+      return res.status(401).json({ error: "Token no proporcionado" });
+    }
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      res.json({ STATUS: "OK", usuario: decoded });
+    } catch (error) {
+      res.status(401).json({ STATUS: "ERROR", error: "Token inválido" });
+    }
+  },
+
+  guestLogin: async (req, res) => {
+    try {
+      const guestUser = {
+        id: 'guest_' + Date.now(),
+        username: 'invitado',
+        nombre: 'Usuario Demo',
+        rol: 'invitado',
+        permisos: ['lectura']
+      };
+
+      const token = jwt.sign(
+        { user: guestUser },
+        JWT_SECRET,
+        { expiresIn: "2h" }
+      );
 
       res.json({
         STATUS: "OK",
-        DATA: {
-          token,
-          usuario: {
-            id: usuario.id,
-            username: usuario.username,
-            nombre: usuario.nombre,
-            rol: usuario.rol,
-          },
-        },
-      })
+        token,
+        usuario: guestUser
+      });
     } catch (error) {
-      res.status(500).json({
+      res.status(500).json({ 
         STATUS: "ERROR",
-        ERROR: error.message,
-      })
+        error: "Error en acceso demo" 
+      });
     }
   },
 
-  /**
-   * Registrar un nuevo usuario
-   */
-  register: async (req, res) => {
-    try {
-      const { username, password, nombre, rol } = req.body
-
-      if (!username || !password || !nombre) {
-        return res.status(400).json({
-          STATUS: "ERROR",
-          ERROR: "Por favor, completa todos los campos requeridos.",
-        })
-      }
-
-      // Verificar si el usuario ya existe
-      const usuarioExistente = await Usuario.getByUsername(username)
-      if (usuarioExistente.STATUS === "OK" && usuarioExistente.DATA.length > 0) {
-        return res.status(400).json({
-          STATUS: "ERROR",
-          ERROR: "El nombre de usuario ya está en uso.",
-        })
-      }
-
-      // Crear el nuevo usuario
-      const result = await Usuario.create({
-        username,
-        password,
-        nombre,
-        rol,
-      })
-
-      if (result.STATUS !== "OK") {
-        return res.status(500).json({
-          STATUS: "ERROR",
-          ERROR: result.ERROR || "Error al crear el usuario.",
-        })
-      }
-
-      res.status(201).json({
-        STATUS: "OK",
-        MESSAGE: "Usuario creado correctamente.",
-      })
-    } catch (error) {
-      res.status(500).json({
-        STATUS: "ERROR",
-        ERROR: error.message,
-      })
-    }
-  },
-
-  /**
-   * Verificar el token JWT
-   */
-  verificarToken: async (req, res) => {
-    try {
-      const token = req.headers.authorization?.split(" ")[1]
-
-      if (!token) {
-        return res.status(401).json({
-          STATUS: "ERROR",
-          ERROR: "No se proporcionó token de autenticación.",
-        })
-      }
-
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET)
-        res.json({
-          STATUS: "OK",
-          DATA: {
-            usuario: decoded,
-          },
-        })
-      } catch (error) {
-        return res.status(401).json({
-          STATUS: "ERROR",
-          ERROR: "Token inválido o expirado.",
-        })
-      }
-    } catch (error) {
-      res.status(500).json({
-        STATUS: "ERROR",
-        ERROR: error.message,
-      })
-    }
-  },
-}
-
-export default authController
+  logout: (req, res) => {
+    res.json({ STATUS: "OK", message: "Sesión cerrada" });
+  }
+};

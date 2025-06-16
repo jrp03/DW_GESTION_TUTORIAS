@@ -1,81 +1,72 @@
-import Master from "../models/master.js"
+import { Master } from "../models/master.js";
 
-// Controlador para el módulo de masters
-const mastersController = {
-  /**
-   * Obtener todos los maestros (para el select)
-   */
+export const mastersController = {
   getMaestros: async (req, res) => {
     try {
-      const maestros = await Master.getMaestros()
-      res.json({ DATA: maestros })
+      const maestros = await Master.getMaestros();
+      res.json(maestros);
     } catch (error) {
-      res.status(500).json({ ERROR: "Error en la consulta a la base de datos" })
+      res.status(500).json({ error: "Error al obtener maestros" });
     }
   },
 
-  /**
-   * Obtener todas las materias (para el select)
-   */
   getMaterias: async (req, res) => {
     try {
-      const materias = await Master.getMaterias()
-      res.json({ DATA: materias })
+      const materias = await Master.getMaterias();
+      res.json(materias);
     } catch (error) {
-      res.status(500).json({ ERROR: "Error en la consulta a la base de datos" })
+      res.status(500).json({ error: "Error al obtener materias" });
     }
   },
 
-  /**
-   * Obtener todos los asesores (para el select)
-   */
   getAsesores: async (req, res) => {
     try {
-      const asesores = await Master.getAsesores()
-      res.json({ DATA: asesores })
+      const asesores = await Master.getAsesores();
+      res.json(asesores);
     } catch (error) {
-      res.status(500).json({ ERROR: "Error en la consulta a la base de datos" })
+      res.status(500).json({ error: "Error al obtener asesores" });
     }
   },
 
-  /**
-   * Obtener todas las solicitudes (para el select)
-   */
   getSolicitudes: async (req, res) => {
     try {
-      const solicitudes = await Master.getSolicitudes()
-      res.json({ DATA: solicitudes })
+      const solicitudes = await Master.getSolicitudes();
+      res.json(solicitudes);
     } catch (error) {
-      res.status(500).json({ ERROR: "Error en la consulta a la base de datos" })
+      res.status(500).json({ error: "Error al obtener solicitudes" });
     }
   },
 
-  /**
-   * Buscar información según diferentes criterios
-   */
-  buscar: async (req, res) => {
+  buscarAvanzada: async (req, res) => {
     try {
-      const { maestro, materia, asesor } = req.body
-
-      // Verificar que al menos un criterio de búsqueda esté presente
-      if ((!maestro || maestro === "") && (!materia || materia === "") && (!asesor || asesor === "")) {
-        return res.status(400).json({
-          STATUS: "ERROR",
-          ERROR: "No se proporcionaron parámetros de búsqueda válidos.",
-          DATA: [],
-        })
+      const { maestro, materia, asesor } = req.body;
+      const result = await Master.buscarAvanzada({ maestro, materia, asesor });
+      
+      if (result.success) {
+        res.json(result.data);
+      } else {
+        res.status(400).json({ error: result.error });
       }
-
-      const result = await Master.buscar({ maestro, materia, asesor })
-      res.json(result)
     } catch (error) {
-      res.status(500).json({
-        STATUS: "ERROR",
-        ERROR: error.message,
-        DATA: [],
-      })
+      res.status(500).json({ error: error.message });
     }
   },
-}
 
-export default mastersController
+  getFiltrosCompletos: async (req, res) => {
+    try {
+      const [maestros, materias, asesores] = await Promise.all([
+        Master.getMaestros(),
+        Master.getMaterias(),
+        Master.getAsesores()
+      ]);
+      
+      res.json({
+        maestros,
+        materias,
+        asesores
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Error al obtener filtros completos" });
+    }
+  }
+};

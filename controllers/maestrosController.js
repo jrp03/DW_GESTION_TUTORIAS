@@ -1,136 +1,111 @@
-import Maestro from "../models/maestro.js"
+import { Maestro } from "../models/maestro.js";
 
-// Controlador para el módulo de maestros
-const maestrosController = {
-  /**
-   * Obtener todos los maestros
-   */
-  getAll: async (req, res) => {
-    try {
-      const result = await Maestro.getAll()
-      res.json(result)
-    } catch (error) {
-      res.status(500).json({
-        STATUS: "ERROR",
-        ERROR: error.message,
-        DATA: [],
-      })
+// Cambiado a exportaciones individuales
+export const getAll = async (req, res) => {
+  const result = await Maestro.getAll();
+  if (result.success) {
+    res.json(result.data);
+  } else {
+    res.status(500).json({ error: result.error });
+  }
+};
+
+export const getById = async (req, res) => {
+  const result = await Maestro.getById(req.params.id);
+  if (result.success) {
+    res.json(result.data[0] || {});
+  } else {
+    res.status(404).json({ error: result.error });
+  }
+};
+
+export const create = async (req, res) => {
+  const { id_maestro, nombres, apellidos, materia, carrera, telefono, correo } = req.body;
+  
+  if (!id_maestro || !nombres || !apellidos || !materia || !carrera || !telefono || !correo) {
+    return res.status(400).json({ error: "Todos los campos son requeridos" });
+  }
+
+  const result = await Maestro.create({
+    id_maestro, nombres, apellidos, materia, carrera, telefono, correo
+  });
+
+  if (result.success) {
+    res.status(201).json({ message: "Maestro creado exitosamente" });
+  } else {
+    res.status(400).json({ error: result.error });
+  }
+};
+
+export const update = async (req, res) => {
+  const { id_maestro, ...datos } = req.body;
+  
+  if (!id_maestro) {
+    return res.status(400).json({ error: "ID de maestro requerido" });
+  }
+
+  const result = await Maestro.update({ id_maestro, ...datos });
+  if (result.success) {
+    res.json({ message: "Maestro actualizado" });
+  } else {
+    res.status(400).json({ error: result.error });
+  }
+};
+
+export const partialUpdate = async (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+  
+  if (!id || Object.keys(updates).length === 0) {
+    return res.status(400).json({ error: "ID y datos de actualización requeridos" });
+  }
+
+  try {
+    const result = await Maestro.update({ id_maestro: id, ...updates });
+    if (result.success) {
+      res.json({ message: "Maestro actualizado parcialmente" });
+    } else {
+      res.status(400).json({ error: result.error });
     }
-  },
+  } catch (error) {
+    res.status(500).json({ error: "Error al actualizar maestro" });
+  }
+};
 
-  /**
-   * Obtener un maestro por su ID
-   */
-  getById: async (req, res) => {
-    try {
-      const { id } = req.params
-      const result = await Maestro.getById(id)
-      res.json(result)
-    } catch (error) {
-      res.status(500).json({
-        STATUS: "ERROR",
-        ERROR: error.message,
-        DATA: [],
-      })
+export const deleteMaestro = async (req, res) => {
+  const { id } = req.params;
+  const result = await Maestro.delete(id);
+  if (result.success) {
+    res.json({ message: "Maestro eliminado" });
+  } else {
+    res.status(400).json({ error: result.error });
+  }
+};
+
+export const getMateriasByMaestro = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await Maestro.getMateriasByMaestro(id);
+    if (result.success) {
+      res.json(result.data);
+    } else {
+      res.status(404).json({ error: "No se encontraron materias" });
     }
-  },
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener materias" });
+  }
+};
 
-  /**
-   * Crear un nuevo maestro
-   */
-  create: async (req, res) => {
-    try {
-      const { id_maestro, nombres, apellidos, materia, carrera, telefono, correo } = req.body
-
-      if (!id_maestro || !nombres || !apellidos || !materia || !carrera || !telefono || !correo) {
-        return res.status(400).send("Por favor, completa todos los campos.")
-      }
-
-      const result = await Maestro.create({
-        id_maestro,
-        nombres,
-        apellidos,
-        materia,
-        carrera,
-        telefono,
-        correo,
-      })
-
-      if (result.STATUS === "OK") {
-        res.send("Registro guardado correctamente.")
-      } else {
-        res.status(400).send(`Error al guardar el registro: ${result.ERROR}`)
-      }
-    } catch (error) {
-      res.status(500).send(`Error en el servidor: ${error.message}`)
+export const getByCarrera = async (req, res) => {
+  const { carrera } = req.params;
+  try {
+    const result = await Maestro.getByCarrera(carrera);
+    if (result.success) {
+      res.json(result.data);
+    } else {
+      res.status(404).json({ error: "No se encontraron maestros" });
     }
-  },
-
-  /**
-   * Actualizar un maestro existente
-   */
-  update: async (req, res) => {
-    try {
-      const { id_maestro, nombres, apellidos, materia, carrera, telefono, correo } = req.body
-
-      if (!id_maestro) {
-        return res.status(400).send("Por favor, ingresa un ID de maestro válido.")
-      }
-
-      const result = await Maestro.update({
-        id_maestro,
-        nombres,
-        apellidos,
-        materia,
-        carrera,
-        telefono,
-        correo,
-      })
-
-      if (result.STATUS === "OK") {
-        res.send("Registro actualizado correctamente.")
-      } else {
-        res.status(400).send(`Error al actualizar el registro: ${result.ERROR}`)
-      }
-    } catch (error) {
-      res.status(500).send(`Error en el servidor: ${error.message}`)
-    }
-  },
-
-  /**
-   * Eliminar un maestro
-   */
-  delete: async (req, res) => {
-    try {
-      const { id_maestro } = req.body
-
-      if (!id_maestro) {
-        return res.status(400).send("Por favor, ingresa un ID de maestro válido.")
-      }
-
-      const result = await Maestro.delete(id_maestro)
-
-      if (result.STATUS === "OK") {
-        res.send("Registro eliminado correctamente.")
-      } else {
-        res.status(400).send(`Error al eliminar el registro: ${result.ERROR}`)
-      }
-    } catch (error) {
-      res.status(500).send(`Error en el servidor: ${error.message}`)
-    }
-  },
-
-  /**
-   * Obtener todas las materias (para el select)
-   */
-  getMaterias: async (req, res) => {
-    try {
-      const materias = await Maestro.getMaterias()
-      res.json(materias)
-    } catch (error) {
-      res.status(500).json([])
-    }
-  },
-}
-
-export default maestrosController
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener maestros" });
+  }
+};

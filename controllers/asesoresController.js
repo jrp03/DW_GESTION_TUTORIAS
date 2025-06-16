@@ -1,150 +1,74 @@
-import Asesor from "../models/asesor.js"
+import { Asesor } from "../models/asesor.js";
 
-// Controlador para el módulo de asesores
-const asesoresController = {
-  /**
-   * Obtener todos los asesores
-   */
+export const asesoresController = {
   getAll: async (req, res) => {
-    try {
-      const result = await Asesor.getAll()
-      res.json(result)
-    } catch (error) {
-      res.status(500).json({
-        STATUS: "ERROR",
-        ERROR: error.message,
-        DATA: [],
-      })
+    const result = await Asesor.getAll();
+    if (result.success) {
+      res.json(result.data);
+    } else {
+      res.status(500).json({ error: result.error });
     }
   },
 
-  /**
-   * Obtener un asesor por su ID
-   */
   getById: async (req, res) => {
-    try {
-      const { id } = req.params
-      const result = await Asesor.getById(id)
-      res.json(result)
-    } catch (error) {
-      res.status(500).json({
-        STATUS: "ERROR",
-        ERROR: error.message,
-        DATA: [],
-      })
+    const result = await Asesor.getById(req.params.id);
+    if (result.success) {
+      res.json(result.data[0] || {});
+    } else {
+      res.status(404).json({ error: result.error });
     }
   },
 
-  /**
-   * Crear un nuevo asesor
-   */
   create: async (req, res) => {
-    try {
-      const { id_alumno, nombre, apellido, telefono, correo, maestro, carrera, materia } = req.body
+    const { id_alumno, nombre, apellido, telefono, correo, maestro, carrera, materia } = req.body;
+    
+    if (!id_alumno || !nombre || !apellido || !telefono || !correo || !maestro || !carrera || !materia) {
+      return res.status(400).json({ error: "Todos los campos son requeridos" });
+    }
 
-      if (!id_alumno || !nombre || !apellido || !telefono || !correo || !maestro || !carrera || !materia) {
-        return res.status(400).send("Por favor, completa todos los campos.")
-      }
+    const result = await Asesor.create({
+      id_alumno, nombre, apellido, telefono, correo, maestro, carrera, materia
+    });
 
-      const result = await Asesor.create({
-        id_alumno,
-        nombre,
-        apellido,
-        telefono,
-        correo,
-        maestro,
-        carrera,
-        materia,
-      })
-
-      if (result.STATUS === "OK") {
-        res.send("Registro guardado correctamente.")
-      } else {
-        res.status(400).send(`Error al guardar el registro: ${result.ERROR}`)
-      }
-    } catch (error) {
-      res.status(500).send(`Error en el servidor: ${error.message}`)
+    if (result.success) {
+      res.status(201).json({ message: "Asesor creado exitosamente" });
+    } else {
+      res.status(400).json({ error: result.error });
     }
   },
 
-  /**
-   * Actualizar un asesor existente
-   */
   update: async (req, res) => {
-    try {
-      const { id_alumno, nombre, apellido, telefono, correo, maestro, carrera, materia } = req.body
+    const { id_alumno, ...datos } = req.body;
+    
+    if (!id_alumno) {
+      return res.status(400).json({ error: "ID de alumno requerido" });
+    }
 
-      if (!id_alumno) {
-        return res.status(400).send("Por favor, ingresa un ID de alumno válido.")
-      }
-
-      const result = await Asesor.update({
-        id_alumno,
-        nombre,
-        apellido,
-        telefono,
-        correo,
-        maestro,
-        carrera,
-        materia,
-      })
-
-      if (result.STATUS === "OK") {
-        res.send("Registro actualizado correctamente.")
-      } else {
-        res.status(400).send(`Error al actualizar el registro: ${result.ERROR}`)
-      }
-    } catch (error) {
-      res.status(500).send(`Error en el servidor: ${error.message}`)
+    const result = await Asesor.update({ id_alumno, ...datos });
+    if (result.success) {
+      res.json({ message: "Asesor actualizado" });
+    } else {
+      res.status(400).json({ error: result.error });
     }
   },
 
-  /**
-   * Eliminar un asesor
-   */
   delete: async (req, res) => {
-    try {
-      const { id_alumno } = req.body
-
-      if (!id_alumno) {
-        return res.status(400).send("Por favor, ingresa un ID de alumno válido.")
-      }
-
-      const result = await Asesor.delete(id_alumno)
-
-      if (result.STATUS === "OK") {
-        res.send("Registro eliminado correctamente.")
-      } else {
-        res.status(400).send(`Error al eliminar el registro: ${result.ERROR}`)
-      }
-    } catch (error) {
-      res.status(500).send(`Error en el servidor: ${error.message}`)
+    const { id } = req.params;
+    const result = await Asesor.delete(id);
+    if (result.success) {
+      res.json({ message: "Asesor eliminado" });
+    } else {
+      res.status(400).json({ error: result.error });
     }
   },
 
-  /**
-   * Obtener todas las materias (para el select)
-   */
   getMaterias: async (req, res) => {
-    try {
-      const materias = await Asesor.getMaterias()
-      res.json({ DATA: materias })
-    } catch (error) {
-      res.status(500).json({ ERROR: "Error en la consulta" })
-    }
+    const result = await Asesor.getMaterias();
+    res.json(result);
   },
 
-  /**
-   * Obtener todos los maestros (para el select)
-   */
   getMaestros: async (req, res) => {
-    try {
-      const maestros = await Asesor.getMaestros()
-      res.json({ DATA: maestros })
-    } catch (error) {
-      res.status(500).json({ ERROR: "Error en la consulta" })
-    }
-  },
-}
-
-export default asesoresController
+    const result = await Asesor.getMaestros();
+    res.json(result);
+  }
+};

@@ -1,108 +1,79 @@
-import Materia from "../models/materia.js"
+import { Materia } from '../models/materia.js';
 
-// Controlador para el módulo de materias
-const materiasController = {
-  /**
-   * Obtener todas las materias
-   */
-  getAll: async (req, res) => {
-    try {
-      const result = await Materia.getAll()
-      res.json(result)
-    } catch (error) {
-      res.status(500).json({
-        STATUS: "ERROR",
-        ERROR: error.message,
-        DATA: [],
-      })
+// Métodos CRUD básicos
+export const getAllMaterias = async (req, res) => {
+  try {
+    const result = await Materia.getAll();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getMateriaById = async (req, res) => {
+  try {
+    const result = await Materia.getById(req.params.id);
+    if (result.length === 0) {
+      return res.status(404).json({ error: "Materia no encontrada" });
     }
-  },
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-  /**
-   * Obtener una materia por su ID
-   */
-  getById: async (req, res) => {
-    try {
-      const { id } = req.params
-      const result = await Materia.getById(id)
-      res.json(result)
-    } catch (error) {
-      res.status(500).json({
-        STATUS: "ERROR",
-        ERROR: error.message,
-        DATA: [],
-      })
+export const createMateria = async (req, res) => {
+  try {
+    const { id_materia, nombre_materia } = req.body;
+    if (!id_materia || !nombre_materia) {
+      return res.status(400).json({ error: "Datos incompletos" });
     }
-  },
+    const result = await Materia.create({ id_materia, nombre_materia });
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-  /**
-   * Crear una nueva materia
-   */
-  create: async (req, res) => {
-    try {
-      const { id_materia, nombre_materia } = req.body
-
-      if (!id_materia || !nombre_materia) {
-        return res.status(400).send("Por favor, completa todos los campos.")
-      }
-
-      const result = await Materia.create({ id_materia, nombre_materia })
-
-      if (result.STATUS === "OK") {
-        res.send("Registro guardado correctamente.")
-      } else {
-        res.status(400).send(`Error al guardar el registro: ${result.ERROR}`)
-      }
-    } catch (error) {
-      res.status(500).send(`Error en el servidor: ${error.message}`)
+export const updateMateria = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre_materia } = req.body;
+    if (!nombre_materia) {
+      return res.status(400).json({ error: "Nombre requerido" });
     }
-  },
+    const result = await Materia.update(id, { nombre_materia });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-  /**
-   * Actualizar una materia existente
-   */
-  update: async (req, res) => {
-    try {
-      const { id_materia, nombre_materia } = req.body
+export const deleteMateria = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await Materia.delete(id);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-      if (!id_materia || !nombre_materia) {
-        return res.status(400).send("Por favor, completa todos los campos.")
-      }
+// Métodos adicionales
+export const getMateriasByCarrera = async (req, res) => {
+  try {
+    const result = await Materia.getByCarrera(req.params.carrera);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-      const result = await Materia.update({ id_materia, nombre_materia })
-
-      if (result.STATUS === "OK") {
-        res.send("Registro actualizado correctamente.")
-      } else {
-        res.status(400).send(`Error al actualizar el registro: ${result.ERROR}`)
-      }
-    } catch (error) {
-      res.status(500).send(`Error en el servidor: ${error.message}`)
-    }
-  },
-
-  /**
-   * Eliminar una materia
-   */
-  delete: async (req, res) => {
-    try {
-      const { id_materia } = req.body
-
-      if (!id_materia) {
-        return res.status(400).send("Por favor, proporciona el ID de la materia.")
-      }
-
-      const result = await Materia.delete(id_materia)
-
-      if (result.STATUS === "OK") {
-        res.send("Registro eliminado correctamente.")
-      } else {
-        res.status(400).send(`Error al eliminar el registro: ${result.ERROR}`)
-      }
-    } catch (error) {
-      res.status(500).send(`Error en el servidor: ${error.message}`)
-    }
-  },
-}
-
-export default materiasController
+export const getMateriasByMaestro = async (req, res) => {
+  try {
+    const result = await Materia.getByMaestro(req.params.idMaestro);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

@@ -1,15 +1,23 @@
-import express from "express"
-import asesoresController from "../controllers/asesoresController.js"
+import express from "express";
+import { asesoresController } from "../controllers/asesoresController.js";
 
-const router = express.Router()
+const router = express.Router();
 
-// Rutas para el módulo de asesores
-router.get("/", asesoresController.getAll)
-router.get("/materias", asesoresController.getMaterias)
-router.get("/maestros", asesoresController.getMaestros)
-router.get("/:id", asesoresController.getById)
-router.post("/guardar", asesoresController.create)
-router.post("/editar", asesoresController.update)
-router.post("/eliminar", asesoresController.delete)
+// Rutas RESTful estándar
+router.get("/", asesoresController.getAll);
+router.get("/:id", asesoresController.getById);
+router.post("/", asesoresController.create);
+router.put("/:id", asesoresController.update);
+router.delete("/:id", asesoresController.delete);
 
-export default router
+// Rutas especializadas
+router.get("/maestros/listado", asesoresController.getMaestros);
+router.get("/materias/listado", asesoresController.getMaterias);
+
+// Manejo de errores centralizado
+router.use((err, req, res, next) => {
+  console.error('Error en ruta asesores:', err);
+  res.status(500).json({ STATUS: "ERROR", ERROR: "Error interno del servidor" });
+});
+
+export default router;
