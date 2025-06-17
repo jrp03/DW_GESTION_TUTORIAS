@@ -1,129 +1,395 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Materias</title>
+    <title>Registro de Materias | Sistema Académico</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-</head>
-<body class="text-bg-dark">
-<div class="container">
-    <div class="row">
-        <div class="col-md-4 offset-md-4">
-            <h2>Materias</h2>
-            <br>
-            <!-- Campos de entrada -->
-            <input class="form-control" type="text" placeholder="ID Materia" id="id_materia">
-            <input class="form-control" type="text" placeholder="Nombre Materia" id="nombre_materia">
-            <br>
-            <!-- Botones de acción -->
-            <div class="col-auto">
-                <button class="btn btn-success mb-3" id="Guardar">Guardar</button>
-                <button class="btn btn-primary mb-3" id="Listado">Listado</button>
-                <button class="btn btn-warning mb-3" id="Editar">Editar</button>
-                <button class="btn btn-danger mb-3" id="Eliminar">Eliminar</button>
-                <a href="/" class="btn btn-secondary mb-3">Volver al Inicio</a>
-            </div>
-            <div id="Respuesta"></div>
-        </div>
-    </div>
-
-    <!-- Tabla de listado -->
-    <div class="row">
-        <div class="col-md-8 offset-md-2" id="DivListado" style="display: none">
-            <table class="table table-dark" id="tableListado">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>ID Materia</th>
-                        <th>Nombre Materia</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- JavaScript para manejar eventos -->
-<script>
-$(document).ready(function() {
-
-    // Guardar Materia
-    $("#Guardar").click(function() {
-        let id_materia = $("#id_materia").val().trim();
-        let nombre_materia = $("#nombre_materia").val().trim();
-
-        if (id_materia && nombre_materia) {
-            $.post("/api/materias/guardar", {
-                id_materia: id_materia,
-                nombre_materia: nombre_materia
-            }, function(data) {
-                $("#Respuesta").html(data);
-                $("#Listado").click(); // Actualiza la lista
-            });
-        } else {
-            $("#Respuesta").html("Por favor, completa todos los campos.");
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --dark-color: #2b2d42;
+            --light-color: #f8f9fa;
+            --success-color: #4cc9f0;
+            --warning-color: #f8961e;
+            --danger-color: #f72585;
         }
-    });
+        
+        body {
+            background-color: #f5f7ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.25);
+            transform: translateY(-5px);
+        }
+        
+        .navbar-glass {
+            background: rgba(67, 97, 238, 0.85) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-logo {
+            height: 32px;
+            width: auto;
+            transition: transform 0.3s ease;
+            filter: brightness(0) invert(1);
+        }
+        
+        .navbar-logo:hover {
+            transform: scale(1.1);
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(72, 149, 239, 0.25);
+        }
+        
+        .btn-modern {
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-modern::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-100%);
+            transition: all 0.3s;
+        }
+        
+        .btn-modern:hover::after {
+            transform: translateX(0);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .table-modern {
+            --bs-table-bg: transparent;
+            --bs-table-striped-bg: rgba(67, 97, 238, 0.05);
+            --bs-table-hover-bg: rgba(67, 97, 238, 0.1);
+        }
+        
+        .table-modern thead {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .floating-label {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .floating-label label {
+            position: absolute;
+            top: 12px;
+            left: 15px;
+            color: #6c757d;
+            transition: all 0.3s;
+            pointer-events: none;
+            background: white;
+            padding: 0 5px;
+        }
+        
+        .floating-label input:focus + label,
+        .floating-label input:not(:placeholder-shown) + label,
+        .floating-label select:focus + label,
+        .floating-label select:not([value=""]) + label {
+            top: -10px;
+            left: 10px;
+            font-size: 12px;
+            color: var(--primary-color);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        #Respuesta {
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .section-title {
+            position: relative;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            color: var(--dark-color);
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar  -->
+    <nav class="navbar navbar-glass navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="https://cdn-icons-png.flaticon.com/512/3565/3565418.png" alt="Logo Sistema" class="navbar-logo me-2">
+                <span class="fw-bold">Registro de Materias</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="avatar me-3">user</div>
+                <button id="logoutBtn" class="btn btn-outline-light">
+                    <i class="fas fa-sign-out-alt me-1"></i> Salir
+                </button>
+            </div>
+        </div>
+    </nav>
 
-    // Listar Materias
-    $("#Listado").click(function() {
-        $("#DivListado").show();
-        $.get("/api/materias", function(data) {
-            if (data.DATA.length > 0) {
-                let html = "";
-                $.each(data.DATA, function(index, value) {
-                    html += `<tr>
-                                <td>${index + 1}</td>
-                                <td>${value.id_materia}</td>
-                                <td>${value.nombre_materia}</td>
-                             </tr>`;
-                });
-                $("#tableBody").html(html);
-            } else {
-                $("#tableBody").html("<tr><td colspan='3'>Sin datos</td></tr>");
-            }
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Formulario -->
+                <div class="glass-card p-4 p-md-5 mb-5">
+                    <h2 class="section-title">Gestión de Materias</h2>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="floating-label">
+                                <input class="form-control" type="text" id="id_materia" placeholder=" ">
+                                <label for="id_materia">ID Materia</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating-label">
+                                <input class="form-control" type="text" id="nombre_materia" placeholder=" ">
+                                <label for="nombre_materia">Nombre Materia</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <div class="d-flex flex-wrap justify-content-center gap-3">
+                                <button class="btn btn-success btn-modern" id="Guardar">
+                                    <i class="fas fa-save me-2"></i>Guardar
+                                </button>
+                                <button class="btn btn-primary btn-modern" id="Listado">
+                                    <i class="fas fa-list me-2"></i>Listado
+                                </button>
+                                <button class="btn btn-warning btn-modern" id="Editar">
+                                    <i class="fas fa-edit me-2"></i>Editar
+                                </button>
+                                <button class="btn btn-danger btn-modern" id="Eliminar">
+                                    <i class="fas fa-trash-alt me-2"></i>Eliminar
+                                </button>
+                                <a href="/" class="btn btn-secondary btn-modern">
+                                    <i class="fas fa-home me-2"></i>Inicio
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="Respuesta" class="text-center mt-4"></div>
+                </div>
+
+                <!-- Tarjeta de Listado -->
+                <div class="glass-card p-4" id="DivListado" style="display: none;">
+                    <h3 class="section-title">Listado de Materias</h3>
+                    <div class="table-responsive">
+                        <table class="table table-modern table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>ID Materia</th>
+                                    <th>Nombre Materia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="table-group-divider"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    $(document).ready(function() {
+        // Verificar autenticación
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+
+        // Manejar logout
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
         });
-    });
 
-    // Editar Materia
-    $("#Editar").click(function() {
-        let id_materia = prompt("Ingresa el ID de la materia a editar:");
-        if (id_materia) {
-            let nombre_materia = prompt("Ingresa el nuevo nombre de la materia:");
-            if (nombre_materia) {
-                $.post("/api/materias/editar", {
+        // Guardar Materia
+        $("#Guardar").click(function() {
+            let id_materia = $("#id_materia").val().trim();
+            let nombre_materia = $("#nombre_materia").val().trim();
+
+            if (id_materia && nombre_materia) {
+                $.post("/api/materias/guardar", {
                     id_materia: id_materia,
                     nombre_materia: nombre_materia
                 }, function(data) {
-                    $("#Respuesta").html(data);
+                    $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
                     $("#Listado").click();
+                    limpiarFormulario();
+                }).fail(function() {
+                    $("#Respuesta").html('<div class="alert alert-danger">Error al guardar los datos</div>').fadeIn().delay(3000).fadeOut();
                 });
             } else {
-                $("#Respuesta").html("Por favor, ingresa un nuevo nombre.");
+                $("#Respuesta").html('<div class="alert alert-warning">Por favor, completa todos los campos.</div>').fadeIn().delay(3000).fadeOut();
             }
-        } else {
-            $("#Respuesta").html("Por favor, ingresa un ID válido.");
-        }
-    });
+        });
 
-    // Eliminar Materia
-    $("#Eliminar").click(function() {
-        let id_materia = prompt("Ingresa el ID de la materia a eliminar:");
-        if (id_materia) {
-            $.post("/api/materias/eliminar", { id_materia: id_materia }, function(data) {
-                $("#Respuesta").html(data);
-                $("#Listado").click();
+        // Listar Materias
+        $("#Listado").click(function() {
+            $("#DivListado").slideDown();
+            $.get("/api/materias", function(data) {
+                if (data.DATA.length > 0) {
+                    let html = "";
+                    $.each(data.DATA, function(index, value) {
+                        html += `<tr>
+                                    <td>${index + 1}</td>
+                                    <td>${value.id_materia}</td>
+                                    <td>${value.nombre_materia}</td>
+                                 </tr>`;
+                    });
+                    $("#tableBody").html(html);
+                } else {
+                    $("#tableBody").html(`<tr><td colspan="3" class="text-center py-4 text-muted">
+                        <i class="fas fa-info-circle me-2"></i>No hay registros disponibles
+                    </td></tr>`);
+                }
             });
-        } else {
-            $("#Respuesta").html("Por favor, ingresa un ID válido.");
+        });
+
+        // Editar Materia
+        $("#Editar").click(function() {
+            let id_materia = $("#id_materia").val().trim();
+            if (!id_materia) {
+                id_materia = prompt("Ingresa el ID de la materia a editar:");
+                if (!id_materia) {
+                    $("#Respuesta").html('<div class="alert alert-warning">Debes ingresar un ID válido</div>').fadeIn().delay(3000).fadeOut();
+                    return;
+                }
+            }
+
+            let nombre_materia = $("#nombre_materia").val().trim();
+            if (!nombre_materia) {
+                nombre_materia = prompt("Ingresa el nuevo nombre de la materia:");
+                if (!nombre_materia) {
+                    $("#Respuesta").html('<div class="alert alert-warning">Debes ingresar un nombre válido</div>').fadeIn().delay(3000).fadeOut();
+                    return;
+                }
+            }
+
+            $.post("/api/materias/editar", {
+                id_materia: id_materia,
+                nombre_materia: nombre_materia
+            }, function(data) {
+                $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
+                $("#Listado").click();
+                limpiarFormulario();
+            }).fail(function() {
+                $("#Respuesta").html('<div class="alert alert-danger">Error al editar la materia</div>').fadeIn().delay(3000).fadeOut();
+            });
+        });
+
+        // Eliminar Materia
+        $("#Eliminar").click(function() {
+            let id_materia = $("#id_materia").val().trim();
+            if (!id_materia) {
+                id_materia = prompt("Ingresa el ID de la materia a eliminar:");
+                if (!id_materia) {
+                    $("#Respuesta").html('<div class="alert alert-warning">Debes ingresar un ID válido</div>').fadeIn().delay(3000).fadeOut();
+                    return;
+                }
+            }
+
+            if (confirm(`¿Estás seguro de eliminar la materia con ID ${id_materia}?`)) {
+                $.post("/api/materias/eliminar", { id_materia: id_materia }, function(data) {
+                    $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
+                    $("#Listado").click();
+                    limpiarFormulario();
+                }).fail(function() {
+                    $("#Respuesta").html('<div class="alert alert-danger">Error al eliminar la materia</div>').fadeIn().delay(3000).fadeOut();
+                });
+            }
+        });
+
+        function limpiarFormulario() {
+            $("#id_materia, #nombre_materia").val('');
         }
     });
-
-});
-</script>
+    </script>
 </body>
 </html>

@@ -94,7 +94,8 @@ app.get('/masters', (req, res) => {
 //});
 
 // Rutas de la API
-app.use('/api', routes);
+app.use('/', routes);
+app.use('/api', routes); // rutas privadas
 
 // Middleware para manejo de errores
 app.use((err, req, res, next) => {

@@ -25,11 +25,11 @@ export const authController = {
 
       res.json({
         token,
-        usuario: {
+        user: {
           id: usuario.id,
           username: usuario.username,
           nombre: usuario.nombre,
-          rol: usuario.rol
+          role: usuario.rol
         }
       });
     } catch (error) {

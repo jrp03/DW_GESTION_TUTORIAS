@@ -59,7 +59,9 @@ export class Usuario {
     try {
       const result = await this.getByUsername(username);
       
-      if (!result.success || result.data.length === 0) return null;
+      if (!result.success || result.data.length === 0){ 
+        return null;
+      }
       
       const usuario = result.data[0];
       const valido = await bcrypt.compare(password, usuario.password);

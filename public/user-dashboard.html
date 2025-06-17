@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión Departamento de Tutorías</title>
+    <title>Panel de Usuario | Sistema Académico</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -62,7 +62,7 @@
         .header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 30px 0;
+            padding: 40px 0;
             margin-bottom: 40px;
             border-bottom: 5px solid var(--accent-color);
         }
@@ -206,39 +206,21 @@
             background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
             border-radius: 2px;
         }
-        
-        .auth-message {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
-            margin-bottom: 30px;
-        }
     </style>
 </head>
 <body>
-    <!-- Navbar } -->
+    <!-- Navbar Moderno -->
     <nav class="navbar navbar-glass navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <img src="https://cdn-icons-png.flaticon.com/512/3565/3565418.png" alt="Logo Sistema" class="navbar-logo me-2">
-                <span class="fw-bold">Sistema de Tutorías</span>
-            </a>   <!-- logo -->
+                <span class="fw-bold">Panel de Usuario</span>
+            </a>
             <div class="d-flex align-items-center">
-                <div id="loginSection">
-                    <a href="/login" class="btn btn-outline-light me-2">
-                        <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
-                    </a>
-                    <a href="/register" class="btn btn-light">
-                        <i class="fas fa-user-plus me-1"></i>Registrarse
-                    </a>
-                </div>
-                <div id="userSection" style="display: none;">
-                    <div class="avatar me-3" id="userAvatar">U</div>
-                    <button id="logoutBtn" class="btn btn-outline-light">
-                        <i class="fas fa-sign-out-alt me-1"></i>Salir
-                    </button>
-                </div>
+                <div class="avatar me-3" id="userAvatar">U</div>
+                <button id="logoutBtn" class="btn btn-outline-light">
+                    <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                </button>
             </div>
         </div>
     </nav>
@@ -246,61 +228,16 @@
     <!-- Header -->
     <div class="header">
         <div class="container text-center">
-            <h1 class="display-4">Sistema de Gestión Departamento de Tutorías</h1>
-            <p class="lead">Facultad de Informatica Culiacan</p>
-           
+            <h1 class="display-4">Panel de Usuario</h1>
+            <p class="lead">Consulta y gestión académica</p>
         </div>
     </div>
 
     <div class="container content">
-        <!-- Mensaje para usuarios no autenticados -->
-        <div id="authMessage" class="auth-message text-center">
-            <h4 class="section-title">¡Bienvenido al Sistema de Tutorías!</h4>
-            <p> por favor inicia sesión o regístrate.</p>
-            <div class="d-flex justify-content-center gap-3 mt-4">
-                <a href="/login" class="btn btn-primary btn-modern">
-                    <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
-                </a>
-                <a href="/register" class="btn btn-outline-primary btn-modern">
-                    <i class="fas fa-user-plus me-2"></i>Registrarse
-                </a>
-            </div>
-        </div>
-
-        <!-- Módulos del sistema (solo visibles para usuarios autenticados) -->
-        <div class="row g-4 modules-container" style="display: none;">
-            <!-- Módulo de Materias -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <div class="icon-container">
-                            <i class="fas fa-book"></i>
-                        </div>
-                        <h5 class="card-title">Registro de Materias</h5>
-                        <p class="card-text">Gestiona el catálogo de materias académicas disponibles en el sistema.</p>
-                        <a href="/materias" class="btn btn-primary btn-modern">
-                            <i class="fas fa-arrow-right me-2"></i>Acceder
-                        </a>
-                    </div>
-                </div>
-            </div>
+        <div class="row g-4">
+          
             
-            <!-- Módulo de Maestros -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <div class="icon-container">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                        </div>
-                        <h5 class="card-title">Registro de Maestros</h5>
-                        <p class="card-text">Administra la información de los maestros encargados de las materias.</p>
-                        <a href="/maestros" class="btn btn-success btn-modern">
-                            <i class="fas fa-arrow-right me-2"></i>Acceder
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
+           
             <!-- Módulo de Asesores -->
             <div class="col-md-6 col-lg-4">
                 <div class="card text-center h-100">
@@ -308,8 +245,8 @@
                         <div class="icon-container">
                             <i class="fas fa-user-graduate"></i>
                         </div>
-                        <h5 class="card-title">Registro de Asesores</h5>
-                        <p class="card-text">Gestiona la información de los asesores académicos disponibles.</p>
+                        <h5 class="card-title">registro de Asesores</h5>
+                        <p class="card-text">registra asesores  .</p>
                         <a href="/asesores" class="btn btn-warning btn-modern">
                             <i class="fas fa-arrow-right me-2"></i>Acceder
                         </a>
@@ -324,8 +261,8 @@
                         <div class="icon-container">
                             <i class="fas fa-file-alt"></i>
                         </div>
-                        <h5 class="card-title">Registro de Solicitudes</h5>
-                        <p class="card-text">Administra las solicitudes de asesorías académicas.</p>
+                        <h5 class="card-title">Solicitudes</h5>
+                        <p class="card-text">hacer solicitudes de asesoría.</p>
                         <a href="/solicitudes" class="btn btn-danger btn-modern">
                             <i class="fas fa-arrow-right me-2"></i>Acceder
                         </a>
@@ -333,15 +270,15 @@
                 </div>
             </div>
             
-            <!-- Módulo de Búsqueda Avanzada -->
+            <!-- Módulo de Búsqueda -->
             <div class="col-md-6 col-lg-4">
                 <div class="card text-center h-100">
                     <div class="card-body">
                         <div class="icon-container">
                             <i class="fas fa-search"></i>
                         </div>
-                        <h5 class="card-title">Búsqueda Avanzada</h5>
-                        <p class="card-text">Realiza búsquedas avanzadas en el sistema académico.</p>
+                        <h5 class="card-title">Búsqueda</h5>
+                        <p class="card-text">Herramientas de búsqueda básica.</p>
                         <a href="/masters" class="btn btn-info btn-modern">
                             <i class="fas fa-arrow-right me-2"></i>Acceder
                         </a>
@@ -349,16 +286,16 @@
                 </div>
             </div>
 
-            <!-- Módulo adicional para Admin -->
+            <!-- Módulo de Perfil -->
             <div class="col-md-6 col-lg-4">
                 <div class="card text-center h-100">
                     <div class="card-body">
                         <div class="icon-container">
-                            <i class="fas fa-cog"></i>
+                            <i class="fas fa-user-circle"></i>
                         </div>
-                        <h5 class="card-title">Configuración</h5>
-                        <p class="card-text">Ajustes y configuración avanzada del sistema.</p>
-                        <a href="/admin/config" class="btn btn-secondary btn-modern">
+                        <h5 class="card-title">Mi Perfil</h5>
+                        <p class="card-text">Administra tu información personal.</p>
+                        <a href="/user/profile" class="btn btn-secondary btn-modern">
                             <i class="fas fa-arrow-right me-2"></i>Acceder
                         </a>
                     </div>
@@ -377,63 +314,33 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const loginSection = document.getElementById('loginSection');
-            const userSection = document.getElementById('userSection');
-            const userAvatar = document.getElementById('userAvatar');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const authMessage = document.getElementById('authMessage');
-            const modulesContainer = document.querySelector('.modules-container');
-            
-            // Verificar si hay un token en localStorage
+            // Verificar autenticación
             const token = localStorage.getItem('token');
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             
-            if (token) {
-                // Verificar si el token es válido
-                fetch('/api/auth/verificar', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.STATUS === 'OK') {
-                        // Mostrar sección de usuario autenticado
-                        loginSection.style.display = 'none';
-                        userSection.style.display = 'flex';
-                        userAvatar.textContent = user.nombre ? user.nombre.charAt(0).toUpperCase() : 'U';
-                        
-                        // Ocultar mensaje de autenticación y mostrar módulos
-                        authMessage.style.display = 'none';
-                        modulesContainer.style.display = 'flex';
-                    } else {
-                        // Token inválido, mostrar sección de login
-                        showLoginSection();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al verificar el token:', error);
-                    showLoginSection();
-                });
-            } else {
-                showLoginSection();
+            if (!token) {
+                window.location.href = '/login';
+                return;
             }
-            
-            function showLoginSection() {
-                loginSection.style.display = 'block';
-                userSection.style.display = 'none';
-                authMessage.style.display = 'block';
-                modulesContainer.style.display = 'none';
+
+            // Mostrar iniciales del usuario en el avatar
+            const userAvatar = document.getElementById('userAvatar');
+            if (user.nombre) {
+                const names = user.nombre.split(' ');
+                let initials = names[0].charAt(0).toUpperCase();
+                if (names.length > 1) {
+                    initials += names[1].charAt(0).toUpperCase();
+                }
+                userAvatar.textContent = initials;
+            } else if (user.username) {
+                userAvatar.textContent = user.username.charAt(0).toUpperCase();
+            }
+
+            // Manejar logout
+            document.getElementById('logoutBtn').addEventListener('click', function() {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-            }
-            
-            // Manejar el cierre de sesión
-            logoutBtn.addEventListener('click', function() {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.reload();
+                window.location.href = '/login';
             });
         });
     </script>
