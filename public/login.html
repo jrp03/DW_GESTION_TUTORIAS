@@ -124,7 +124,8 @@
         // 1. Verificación de sesión existente
         const verifySession = async () => {
             const token = localStorage.getItem('token');
-            if (!token) return;
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!token||!user) return;
 
             try {
                 const response = await fetch('/verify', {
@@ -133,7 +134,10 @@
                 
                 const data = await response.json();
                 if (data.STATUS === "OK") {
-                    window.location.href = '/user/dashboard';
+                 const redirectPath = user.role === 'admin' 
+                    ? '/admin/dashboard' 
+                    : '/user/dashboard';
+            window.location.href = redirectPath;
                 } else {
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
@@ -175,10 +179,15 @@
                 if (data.token && data.user) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    window.location.href = '/user/dashboard';
-                } else {
-                    throw new Error('Respuesta del servidor incompleta');
-                }
+                    
+                // Redirección basada en el rol
+            const redirectPath = data.user.role === 'admin' 
+                ? '/admin/dashboard' 
+                : '/user/dashboard';
+            window.location.href = redirectPath;
+        } else {
+            throw new Error('Respuesta del servidor incompleta');
+        }
             } catch (error) {
                 errorAlert.textContent = error.message;
                 errorAlert.style.display = 'block';

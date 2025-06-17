@@ -22,6 +22,9 @@ router.get("/register", (req, res) => {
 router.get('/user/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'user-dashboard.html'));
 });
+router.get('/admin/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
+});
 
 
 // API Auth  

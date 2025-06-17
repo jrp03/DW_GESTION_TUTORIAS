@@ -13,7 +13,11 @@ export const asesoresController = {
   getById: async (req, res) => {
     const result = await Asesor.getById(req.params.id);
     if (result.success) {
-      res.json(result.data[0] || {});
+      if (result.data && result.data.length > 0) {
+        res.json(result.data[0]);
+      } else {
+        res.status(404).json({ error: "Asesor no encontrado" });
+      }
     } else {
       res.status(404).json({ error: result.error });
     }
