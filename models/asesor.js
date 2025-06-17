@@ -3,12 +3,43 @@ import db from "../config/database.js";
 export class Asesor {
    static async getAll() {
     try {
-      const [data] = await db.query("SELECT * FROM alumnos");
-      return { success: true, data };
+        const [alumnos] = await db.query(`
+            SELECT 
+                a.id_alumno,
+                a.nombre,
+                a.apellido,
+                a.telefono,
+                a.correo,
+                CONCAT(m.nombres, ' ', m.apellidos) AS nombre_maestro,
+                a.carrera,
+                mat.nombre_materia
+            FROM 
+                alumnos a
+            LEFT JOIN 
+                maestros m ON a.maestro = m.id_maestro
+            LEFT JOIN 
+                materias mat ON a.materia = mat.id_materia
+            ORDER BY 
+                a.nombre ASC
+        `);
+        
+        return { 
+            STATUS: "OK", 
+            DATA: alumnos,
+            META: {
+                count: alumnos.length,
+                timestamp: new Date().toISOString()
+            }
+        };
     } catch (error) {
-      return { success: false, error: error.message };
+        console.error('Error en Asesor.getAll:', error);
+        return { 
+            STATUS: "ERROR",
+            ERROR: "Error al obtener el listado de asesores",
+            DETAILS: error.message
+        };
     }
-  }
+}
 
   static async getById(id) {
     try {
@@ -68,12 +99,33 @@ export class Asesor {
   }
 
 
-  //static async getMaestros() {
-  //  const result = await db.query(
-  //    'SELECT id_maestro, nombres, apellidos FROM maestros'
-  //  );
-  //  return result.success ? result.data : [];
-  //}
+  static async getMaestros() {
+  try {
+    const [maestros] = await db.query(
+      'SELECT id_maestro, nombres, apellidos FROM maestros'
+    );
+    if (!maestros) {
+            return { STATUS: "ERROR", ERROR: "No hay materias registradas" };
+        }
+        return { STATUS: "OK", DATA: maestros };
+    } catch (error) {
+        return { STATUS: "ERROR", ERROR: error.message };
+    }
+}
+
+static async getMaterias() {
+    try {
+        const [materias] = await db.query('SELECT id_materia, nombre_materia FROM materias');
+        if (!materias) {
+            return { STATUS: "ERROR", ERROR: "No hay materias registradas" };
+        }
+        return { STATUS: "OK", DATA: materias };
+    } catch (error) {
+        return { STATUS: "ERROR", ERROR: error.message };
+    }
+}
+
+
   static async getMaestrosAlumno() {
     try {
       const [data] = await db.query(

@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         :root {
             --primary-color: #4361ee;
@@ -236,8 +238,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="floating-label">
-                                <select class="form-select" id="materia">
-                                    <option value=""></option>
+                                <select class="form-select" id="materia" required>
                                     <option value="" disabled selected>Seleccione una materia</option>
                                 </select>
                                 <label for="materia">Materia</label>
@@ -321,143 +322,256 @@
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         
-        if (!token) {
+        if (!token || !user.role) {
             window.location.href = '/login';
             return;
         }
 
-        // Manejar logout
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/login';
-        });
+        // Configurar Axios
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+        // Eventos
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        $("#Guardar").click(guardarMaestro);
+        $("#Listado").click(toggleListado);
+        $("#editar").click(editarMaestro);
+        $("#eliminar").click(eliminarMaestro);
 
-        // Cargar materias al inicio
-        cargarMaterias();
+        // Cargar datos iniciales
+        cargarDatosIniciales();
 
-        function cargarMaterias() {
-            $.get("/api/maestros/materias", function(data) {
-                try {
-                    let materias = data;
-                    let opciones = "<option value='' disabled selected>Seleccione una materia</option>";
-                    if (Array.isArray(materias)) {
-                        $.each(materias, function(_, materia) {
-                            opciones += `<option value="${materia.id_materia}">${materia.nombre_materia}</option>`;
-                        });
-                    } else if (materias.DATA) {
-                        $.each(materias.DATA, function(_, materia) {
-                            opciones += `<option value="${materia.id_materia}">${materia.nombre_materia}</option>`;
-                        });
-                    }
-                    $("#materia").html(opciones);
-                } catch (error) {
-                    console.error("Error al cargar materias:", error);
-                }
+        // Funciones principales
+        function cargarDatosIniciales() {
+            Promise.all([
+                cargarMaterias(),
+                cargarCarreras()
+            ]).then(() => {
+                mostrarListado();
+            }).catch(error => {
+                console.error('Error cargando datos iniciales:', error);
+                mostrarError('Error al cargar datos iniciales');
             });
         }
 
-        // Guardar maestro
-        $("#Guardar").click(function() {
-            $.post("/api/maestros/guardar", {
-                id_maestro: $("#id_maestro").val(),
-                nombres: $("#nombres").val(),
-                apellidos: $("#apellidos").val(),
-                materia: $("#materia").val(),
-                carrera: $("#carrera").val(),
-                telefono: $("#telefono").val(),
-                correo: $("#correo").val()
-            }, function(data) {
-                $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
-                $("#Listado").click();
-                limpiarFormulario();
-            }).fail(function() {
-                $("#Respuesta").html('<div class="alert alert-danger">Error al guardar el maestro</div>').fadeIn().delay(3000).fadeOut();
-            });
-        });
-
-        // Mostrar listado
-        $("#Listado").click(function() {
-            $("#DivListado").slideDown();
-            $.get("/api/maestros", function(data) {
-                if (data.DATA && data.DATA.length > 0) {
-                    let html = "";
-                    $.each(data.DATA, function(index, value) {
-                        html += `<tr>
-                                    <td>${index + 1}</td>
-                                    <td>${value.id_maestro}</td>
-                                    <td>${value.nombres}</td>
-                                    <td>${value.apellidos}</td>
-                                    <td>${value.materia}</td>
-                                    <td><span class="badge bg-primary">${value.carrera}</span></td>
-                                    <td>${value.telefono}</td>
-                                    <td><a href="mailto:${value.correo}">${value.correo}</a></td>
-                                 </tr>`;
+        function cargarMaterias() {
+            return axios.get('/api/maestros/materias/listado')
+                .then(response => {
+                    const selectMateria = $("#materia");
+                    selectMateria.empty().append(
+                        $('<option>').val('').prop('disabled', true).prop('selected', true).text('Seleccione una materia')
+                    );
+                    
+                    (response.data.DATA || []).forEach(materia => {
+                        selectMateria.append(
+                            $('<option>').val(materia.id_materia).text(materia.nombre_materia)
+                        );
                     });
-                    $("#tableBody").html(html);
-                } else {
-                    $("#tableBody").html(`<tr><td colspan="8" class="text-center py-4 text-muted">
-                        <i class="fas fa-info-circle me-2"></i>No hay registros disponibles
-                    </td></tr>`);
-                }
-            });
-        });
+                })
+                .catch(handleApiError('materias'));
+        }
 
-        // Editar maestro
-        $("#editar").click(function() {
+        function cargarCarreras() {
+            return axios.get('/api/maestros/carreras/listado')
+                .then(response => {
+                    const selectCarrera = $("#carrera");
+                    selectCarrera.empty().append(
+                        $('<option>').val('').prop('disabled', true).prop('selected', true).text('Seleccione una carrera')
+                    );
+                    
+                    (response.data.DATA || []).forEach(carrera => {
+                        selectCarrera.append(
+                            $('<option>').val(carrera.id_carrera).text(carrera.nombre_carrera)
+                        );
+                    });
+                })
+                .catch(handleApiError('carreras'));
+        }
+
+        function guardarMaestro() {
+            const datos = obtenerDatosFormulario();
+            
+            if (!validarDatosMaestro(datos)) {
+                return;
+            }
+
+            axios.post('/api/maestros', datos)
+                .then(response => {
+                    if (response.data.STATUS === "OK") {
+                        mostrarMensaje('success', 'Maestro registrado exitosamente');
+                        recargarDatos();
+                    } else {
+                        mostrarError(response.data.ERROR || 'Error al guardar');
+                    }
+                })
+                .catch(handleApiError('guardar'));
+        }
+
+        function editarMaestro() {
+            const id_maestro = obtenerIdMaestro();
+            if (!id_maestro) return;
+
+            const datos = obtenerDatosFormulario();
+            
+            if (!validarDatosMaestro(datos)) {
+                return;
+            }
+
+            axios.put(`/api/maestros/${id_maestro}`, datos)
+                .then(response => {
+                    if (response.data.STATUS === "OK") {
+                        mostrarMensaje('success', 'Maestro actualizado exitosamente');
+                        recargarDatos();
+                    } else {
+                        mostrarError(response.data.ERROR || 'Error al actualizar');
+                    }
+                })
+                .catch(handleApiError('editar'));
+        }
+
+        function eliminarMaestro() {
+            const id_maestro = obtenerIdMaestro();
+            if (!id_maestro) return;
+
+            if (!confirm(`¿Está seguro de eliminar al maestro con ID ${id_maestro}?`)) {
+                return;
+            }
+
+            axios.delete(`/api/maestros/${id_maestro}`)
+                .then(response => {
+                    if (response.data.STATUS === "OK") {
+                        mostrarMensaje('success', 'Maestro eliminado exitosamente');
+                        recargarDatos();
+                    } else {
+                        mostrarError(response.data.ERROR || 'Error al eliminar');
+                    }
+                })
+                .catch(handleApiError('eliminar'));
+        }
+
+        // Funciones auxiliares
+        function obtenerIdMaestro() {
             let id_maestro = $("#id_maestro").val();
             if (!id_maestro) {
-                id_maestro = prompt("Ingresa el ID del maestro a editar:");
+                id_maestro = prompt("Ingrese ID del maestro:");
                 if (!id_maestro) {
-                    $("#Respuesta").html('<div class="alert alert-warning">Debes ingresar un ID válido</div>').fadeIn().delay(3000).fadeOut();
-                    return;
+                    mostrarError('Debe especificar un ID válido');
+                    return null;
                 }
+                $("#id_maestro").val(id_maestro);
             }
+            return id_maestro;
+        }
 
-            $.post("/api/maestros/editar", {
-                id_maestro: id_maestro,
-                nombres: $("#nombres").val(),
-                apellidos: $("#apellidos").val(),
-                materia: $("#materia").val(),
-                carrera: $("#carrera").val(),
-                telefono: $("#telefono").val(),
-                correo: $("#correo").val()
-            }, function(data) {
-                $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
-                $("#Listado").click();
-                limpiarFormulario();
-            }).fail(function() {
-                $("#Respuesta").html('<div class="alert alert-danger">Error al editar el maestro</div>').fadeIn().delay(3000).fadeOut();
-            });
-        });
+        function obtenerDatosFormulario() {
+            return {
+                nombres: $("#nombres").val().trim(),
+                apellidos: $("#apellidos").val().trim(),
+                id_materia: $("#materia").val(),
+                id_carrera: $("#carrera").val(),
+                telefono: $("#telefono").val().trim(),
+                correo: $("#correo").val().trim()
+            };
+        }
 
-        // Eliminar maestro
-        $("#eliminar").click(function() {
-            let id_maestro = $("#id_maestro").val();
-            if (!id_maestro) {
-                id_maestro = prompt("Ingresa el ID del maestro a eliminar:");
-                if (!id_maestro) {
-                    $("#Respuesta").html('<div class="alert alert-warning">Debes ingresar un ID válido</div>').fadeIn().delay(3000).fadeOut();
-                    return;
-                }
+        function validarDatosMaestro(datos) {
+            if (!datos.nombres || !datos.apellidos || !datos.id_materia) {
+                mostrarError('Nombre, apellido y materia son requeridos');
+                return false;
             }
+            return true;
+        }
 
-            if (confirm(`¿Estás seguro de eliminar al maestro con ID ${id_maestro}?`)) {
-                $.post("/api/maestros/eliminar", { id_maestro: id_maestro }, function(data) {
-                    $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
-                    $("#Listado").click();
-                    limpiarFormulario();
-                }).fail(function() {
-                    $("#Respuesta").html('<div class="alert alert-danger">Error al eliminar el maestro</div>').fadeIn().delay(3000).fadeOut();
-                });
+        function mostrarListado() {
+            $("#DivListado").slideDown();
+            axios.get('/api/maestros')
+                .then(response => {
+                    const maestros = response.data.DATA || [];
+                    const tbody = $("#tableBody");
+                    
+                    tbody.empty();
+                    
+                    if (maestros.length === 0) {
+                        tbody.append(`
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">
+                                    <i class="fas fa-info-circle me-2"></i>No hay registros
+                                </td>
+                            </tr>
+                        `);
+                        return;
+                    }
+                    
+                    maestros.forEach((maestro, index) => {
+                        tbody.append(`
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${maestro.id_maestro}</td>
+                                <td>${maestro.nombres}</td>
+                                <td>${maestro.apellidos}</td>
+                                <td>${maestro.nombre_materia || 'N/A'}</td>
+                                <td><span class="badge bg-primary">${maestro.nombre_carrera || 'N/A'}</span></td>
+                                <td>${maestro.telefono || 'N/A'}</td>
+                                <td><a href="mailto:${maestro.correo}">${maestro.correo || 'N/A'}</a></td>
+                            </tr>
+                        `);
+                    });
+                })
+                .catch(handleApiError('listado'));
+        }
+
+        function toggleListado() {
+            $("#DivListado").slideToggle();
+            if ($("#DivListado").is(":visible")) {
+                mostrarListado();
             }
-        });
+        }
+
+        function recargarDatos() {
+            limpiarFormulario();
+            mostrarListado();
+        }
 
         function limpiarFormulario() {
             $("#id_maestro, #nombres, #apellidos, #telefono, #correo").val('');
             $("#materia, #carrera").val('').trigger('change');
         }
+
+        function logout() {
+            axios.post('/logout')
+                .finally(() => {
+                    localStorage.clear();
+                    window.location.href = '/login';
+                });
+        }
+
+        function mostrarMensaje(tipo, mensaje) {
+            const alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
+            const alertDiv = $(`
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `);
+            
+            $("#Respuesta").html(alertDiv).fadeIn();
+            setTimeout(() => alertDiv.alert('close'), 5000);
+        }
+
+        function mostrarError(mensaje) {
+            mostrarMensaje('danger', mensaje);
+        }
+
+        function handleApiError(contexto) {
+            return error => {
+                console.error(`Error en ${contexto}:`, error);
+                const errorMsg = error.response?.data?.ERROR || 
+                               error.message || 
+                               `Error al procesar ${contexto}`;
+                mostrarError(errorMsg);
+                return Promise.reject(error);
+            };
+        }
     });
-    </script>
+</script>
 </body>
 </html>

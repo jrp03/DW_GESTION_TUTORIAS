@@ -2,14 +2,33 @@ import { Asesor } from "../models/asesor.js";
 
 export const asesoresController = {
   getAll: async (req, res) => {
+    try {
     const result = await Asesor.getAll();
-    if (result.success) {
-      res.json(result.data);
-    } else {
-      res.status(500).json({ error: result.error });
+     if (result.STATUS === "OK") {
+            return res.json({
+                STATUS: "OK",
+                DATA: result.DATA,
+                META: result.META
+            });
+        }
+        
+        return res.status(400).json({
+            STATUS: "ERROR",
+            ERROR: result.ERROR,
+            ...(result.DETAILS && { DETAILS: result.DETAILS })
+        });
+        
+    } catch (error) {
+        console.error('Error en asesoresController.getAll:', error);
+        return res.status(500).json({
+            STATUS: "ERROR",
+            ERROR: "Error interno del servidor",
+            ...(process.env.NODE_ENV === 'development' && { 
+                DETAILS: error.message 
+            })
+        });
     }
   },
-
   getById: async (req, res) => {
     const result = await Asesor.getById(req.params.id);
     if (result.success) {

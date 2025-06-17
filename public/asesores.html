@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         :root {
             --primary-color: #4361ee;
@@ -190,7 +192,7 @@
                 <span class="fw-bold">Sistema Académico</span>
             </a>
             <div class="d-flex align-items-center">
-                <div class="avatar me-3">aqui se supone que va el</div>
+                <div class="avatar me-3" id="userAvatar">U</div>
                 <button id="logoutBtn" class="btn btn-outline-light">
                     <i class="fas fa-sign-out-alt me-1"></i> Salir
                 </button>
@@ -238,7 +240,6 @@
                         <div class="col-md-6">
                             <div class="floating-label">
                                 <select class="form-select" id="maestro">
-                                    <option value=""></option>
                                     <option value="" disabled selected>Seleccione un maestro</option>
                                 </select>
                                 <label for="maestro">Maestro Asignado</label>
@@ -259,7 +260,6 @@
                         <div class="col-12">
                             <div class="floating-label">
                                 <select class="form-select" id="materia">
-                                    <option value=""></option>
                                     <option value="" disabled selected>Seleccione una materia</option>
                                 </select>
                                 <label for="materia">Materia</label>
@@ -279,7 +279,7 @@
                                 <button class="btn btn-danger btn-modern" id="eliminar">
                                     <i class="fas fa-trash-alt me-2"></i>Eliminar
                                 </button>
-                                <a href="/" class="btn btn-secondary btn-modern">
+                                <a href="/user/dashboard" class="btn btn-secondary btn-modern">
                                     <i class="fas fa-home me-2"></i>Inicio
                                 </a>
                             </div>
@@ -316,50 +316,71 @@
 
     <script>
     $(document).ready(function() {
-        // Verificar autenticación
+        // Verificar autenticación y rol
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         
-        if (!token) {
+        if (!token || !user.role) {
             window.location.href = '/login';
             return;
         }
 
+        // Configurar Axios (opcional, mejor que $.ajax)
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
         // Manejar logout
         document.getElementById('logoutBtn').addEventListener('click', function() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/login';
+            axios.post('/logout')
+                .finally(() => {
+                    localStorage.clear();
+                    window.location.href = '/login';
+                });
         });
 
-        // Funcionalidad original
-        cargarMaestros();
-        cargarMaterias();
+        // Cargar datos iniciales
+        cargarSelectores();
+        mostrarListado();
 
-        function cargarMaestros() {
-            $.get("/api/asesores/maestros", function(data) {
-                let maestros = data;
-                let opciones = "<option value='' disabled selected>Seleccione un maestro</option>";
-                $.each(maestros.DATA, function(_, maestro) {
-                    opciones += `<option value="${maestro.id_maestro}">${maestro.nombres} ${maestro.apellidos}</option>`;
-                });
-                $("#maestro").html(opciones);
+        function cargarSelectores() {
+           // Cargar maestros
+    axios.get('/api/asesores/maestros/listado')
+        .then(response => {
+            const selectMaestro = document.getElementById('maestro');
+            selectMaestro.innerHTML = '<option value="" disabled selected>Seleccione un maestro</option>';
+            
+            response.data.DATA.forEach(maestro => {
+                const option = document.createElement('option');
+                option.value = maestro.id_maestro;
+                option.textContent = `${maestro.nombres} ${maestro.apellidos}`;
+                selectMaestro.appendChild(option);
             });
-        }
+        })
+        .catch(error => {
+            console.error('Error cargando maestros:', error);
+            mostrarError('No se pudieron cargar los maestros');
+        });
 
-        function cargarMaterias() {
-            $.get("/api/asesores/materias", function(data) {
-                let materias = data;
-                let opciones = "<option value='' disabled selected>Seleccione una materia</option>";
-                $.each(materias.DATA, function(_, materia) {
-                    opciones += `<option value="${materia.id_materia}">${materia.nombre_materia}</option>`;
-                });
-                $("#materia").html(opciones);
+    // Cargar materias
+   axios.get('/api/asesores/materias/listado')
+        .then(response => {
+            const selectMateria = document.getElementById('materia');
+            selectMateria.innerHTML = '<option value="" disabled selected>Seleccione una materia</option>';
+            
+            response.data.DATA.forEach(materia => {
+                const option = document.createElement('option');
+                option.value = materia.id_materia;
+                option.textContent = materia.nombre_materia;
+                selectMateria.appendChild(option);
             });
+        })
+        .catch(error => {
+            console.error('Error cargando materias:', error);
+            mostrarError('No se pudieron cargar las materias');
+        });
         }
-
+        // Guardar nuevo asesor
         $("#Guardar").click(function() {
-            $.post("/api/asesores/guardar", {
+            const datos = {
                 id_alumno: $("#id_alumno").val(),
                 nombre: $("#nombre").val(),
                 apellido: $("#apellido").val(),
@@ -368,62 +389,54 @@
                 maestro: $("#maestro").val(),
                 carrera: $("#carrera").val(),
                 materia: $("#materia").val()
-            }, function(data) {
-                $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
-                mostrarListado();
-                limpiarFormulario();
-            }).fail(function() {
-                $("#Respuesta").html('<div class="alert alert-danger">Error al guardar los datos</div>').fadeIn().delay(3000).fadeOut();
-            });
+            };
+
+            axios.post('/api/asesores', datos)
+                .then(response => {
+                    mostrarMensaje('success', 'Asesor guardado correctamente');
+                    mostrarListado();
+                    limpiarFormulario();
+                })
+                .catch(error => mostrarError('Error guardando asesor', error));
         });
 
-        // Mostrar listado
-        $("#Listado").click(function() {
-            mostrarListado();
-        });
-
+        // Mostrar listado de asesores
         function mostrarListado() {
             $("#DivListado").slideDown();
-            $.get("/api/asesores", function(data) {
-                if (data.DATA.length > 0) {
-                    let html = "";
-                    $.each(data.DATA, function(index, value) {
-                        html += `<tr>
-                                   <td>${index + 1}</td>
-                                   <td>${value.id_alumno}</td>
-                                   <td>${value.nombre}</td>
-                                   <td>${value.apellido}</td>
-                                   <td>${value.telefono}</td>
-                                   <td><a href="mailto:${value.correo}">${value.correo}</a></td>
-                                   <td>${value.maestro}</td>
-                                   <td><span class="badge bg-primary">${value.carrera}</span></td>
-                                   <td>${value.materia}</td>
-                                 </tr>`;
-                    });
+            axios.get('/api/asesores')
+                .then(response => {
+                    const asesores = response.data.DATA || [];
+                    const html = asesores.length > 0 
+                        ? asesores.map((asesor, index) => `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${asesor.id_alumno || ''}</td>
+                                <td>${asesor.nombre || ''}</td>
+                                <td>${asesor.apellido || ''}</td>
+                                <td>${asesor.telefono || ''}</td>
+                                <td><a href="mailto:${asesor.correo || ''}">${asesor.correo || ''}</a></td>
+                                <td>${asesor.nombre_maestro || ''}</td>
+                                <td><span class="badge bg-primary">${asesor.carrera || ''}</span></td>
+                                <td>${asesor.nombre_materia || ''}</td>
+                            </tr>`
+                        ).join('')
+                        : `<tr><td colspan="9" class="text-center py-4 text-muted">
+                            <i class="fas fa-info-circle me-2"></i>No hay registros
+                        </td></tr>`;
                     $("#tableBody").html(html);
-                } else {
-                    $("#tableBody").html(`<tr><td colspan="9" class="text-center py-4 text-muted">
-                        <i class="fas fa-info-circle me-2"></i>No hay registros disponibles
-                    </td></tr>`);
-                }
-            });
+                })
+                .catch(error => mostrarError('Error cargando listado', error));
         }
 
-        function limpiarFormulario() {
-            $("#id_alumno, #nombre, #apellido, #telefono, #correo").val('');
-            $("#maestro, #carrera, #materia").val('').trigger('change');
-        }
-
-        // Editar registro
+        // Editar asesor
         $("#editar").click(function() {
             let id_alumno = $("#id_alumno").val();
             if (!id_alumno) {
-                id_alumno = prompt("Ingresa el ID del alumno a editar:");
+                id_alumno = prompt("Ingrese ID del alumno a editar:");
                 if (!id_alumno) return;
             }
 
-            $.post("/api/asesores/editar", {
-                id_alumno: id_alumno,
+            const datos = {
                 nombre: $("#nombre").val(),
                 apellido: $("#apellido").val(),
                 telefono: $("#telefono").val(),
@@ -431,33 +444,55 @@
                 maestro: $("#maestro").val(),
                 carrera: $("#carrera").val(),
                 materia: $("#materia").val()
-            }, function(data) {
-                $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
-                mostrarListado();
-            }).fail(function() {
-                $("#Respuesta").html('<div class="alert alert-danger">Error al editar el registro</div>').fadeIn().delay(3000).fadeOut();
-            });
+            };
+
+            axios.put(`/api/asesores/${id_alumno}`, datos)
+                .then(response => {
+                    mostrarMensaje('success', 'Asesor actualizado');
+                    mostrarListado();
+                })
+                .catch(error => mostrarError('Error editando asesor', error));
         });
 
-        // Eliminar registro
+        // Eliminar asesor
         $("#eliminar").click(function() {
             let id_alumno = $("#id_alumno").val();
             if (!id_alumno) {
-                id_alumno = prompt("Ingresa el ID del alumno a eliminar:");
+                id_alumno = prompt("Ingrese ID del alumno a eliminar:");
                 if (!id_alumno) return;
             }
 
-            if (confirm(`¿Estás seguro de eliminar el registro con ID ${id_alumno}?`)) {
-                $.post("/api/asesores/eliminar", { id_alumno: id_alumno }, function(data) {
-                    $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
-                    mostrarListado();
-                    limpiarFormulario();
-                }).fail(function() {
-                    $("#Respuesta").html('<div class="alert alert-danger">Error al eliminar el registro</div>').fadeIn().delay(3000).fadeOut();
-                });
+            if (confirm(`¿Eliminar al asesor con ID ${id_alumno}?`)) {
+                axios.delete(`/api/asesores/${id_alumno}`)
+                    .then(response => {
+                        mostrarMensaje('success', 'Asesor eliminado');
+                        mostrarListado();
+                        limpiarFormulario();
+                    })
+                    .catch(error => mostrarError('Error eliminando asesor', error));
             }
         });
+
+        // Funciones auxiliares
+        function limpiarFormulario() {
+            $("#id_alumno, #nombre, #apellido, #telefono, #correo").val('');
+            $("#maestro, #carrera, #materia").val('').trigger('change');
+        }
+
+        function mostrarMensaje(tipo, mensaje) {
+            const alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
+            $("#Respuesta").html(`<div class="alert ${alertClass}">${mensaje}</div>`)
+                .fadeIn().delay(3000).fadeOut();
+        }
+
+        function mostrarError(mensaje) {
+        const errorAlert = document.createElement('div');
+        errorAlert.className = 'alert alert-danger mt-3';
+        errorAlert.textContent = mensaje;
+        document.body.appendChild(errorAlert);
+        setTimeout(() => errorAlert.remove(), 5000);
+        }
     });
-    </script>
+</script>
 </body>
 </html>

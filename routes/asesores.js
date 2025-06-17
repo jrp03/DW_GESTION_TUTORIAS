@@ -4,8 +4,8 @@ import { asesoresController } from "../controllers/asesoresController.js";
 const router = express.Router();
 
 // Rutas RESTful estándar
-router.get("/", asesoresController.getAll);
-router.get("/:id", asesoresController.getById);
+router.get("/", asesoresController.getAll); // Corresponds to GET /api/asesores
+router.get("/:id", asesoresController.getById); // Corresponds to GET /api/asesores/:id
 router.post("/", asesoresController.create);
 router.put("/:id", asesoresController.update);
 router.delete("/:id", asesoresController.delete);
