@@ -4,7 +4,7 @@
  * /proyecto-node/
  * ├── config/                  # Configuraciones del sistema
  * │   ├── database.js          # Configuración de la base de datos
- * │   └── config.js            # Otras configuraciones
+ * │   
  * │
  * ├── models/                  # Modelos de datos
  * │   ├── materia.js           # Modelo para materias
@@ -28,8 +28,8 @@
  * │   └── index.js             # Archivo que agrupa todas las rutas
  * │
  * ├── public/                  # Archivos estáticos (HTML, CSS, JS del cliente)
- * │   ├── css/
- * │   ├── js/
+ * │   ├── login.html
+ * │   ├── register.html
  * │   ├── index.html           # HTML principal
  * │   ├── materias.html
  * │   ├── maestros.html
@@ -45,7 +45,8 @@
  * │   └── validation.js        # Validación de datos
  * │
  * ├── server.js                # Punto de entrada principal
- * └── package.json             # Dependencias del proyecto
+ * ├── package.json             # Dependencias del proyecto
+ * ├── package-lock.json
  */
 
 // Este es solo un archivo informativo, no se ejecuta

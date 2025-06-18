@@ -1,5 +1,6 @@
 import db from "../config/database.js";
 
+
 export class Materia {
   static async getAll() {
     try {
