@@ -4,23 +4,21 @@ export class Maestro {
   static async getAll() {
     try {
       const [maestros] = await db.query(`
-        SELECT 
-          m.id_maestro,
-          m.nombres,
-          m.apellidos,
-          m.telefono,
-          m.correo,
-          m.carrera,
-          mat.nombre_materia,
-          car.nombre AS nombre_carrera
-        FROM 
-          maestros m
-        LEFT JOIN 
-          materias mat ON m.materia = mat.id_materia
-        LEFT JOIN
-          carreras car ON m.carrera = car.id_carrera
-        ORDER BY 
-          m.nombres ASC
+          SELECT 
+  m.id_maestro,
+  m.nombres,
+  m.apellidos,
+  m.telefono,
+  m.correo,
+  m.carrera,  -- Código de carrera para el mapeo en frontend
+  mat.id_materia,
+  mat.nombre_materia  -- Nombre completo de la materia
+FROM 
+  maestros m
+JOIN 
+  materias mat ON m.materia = mat.id_materia
+ORDER BY 
+  m.nombres ASC
       `);
       
       return { 

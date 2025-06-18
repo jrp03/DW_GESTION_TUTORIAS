@@ -318,260 +318,181 @@
 
     <script>
     $(document).ready(function() {
-        // Verificar autenticación
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        
-        if (!token || !user.role) {
-            window.location.href = '/login';
-            return;
-        }
+    // Verificación de autenticación
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!token || !user.role) window.location.href = '/login';
 
-        // Configurar Axios
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
-        // Eventos
-        document.getElementById('logoutBtn').addEventListener('click', logout);
-        $("#Guardar").click(guardarMaestro);
-        $("#Listado").click(toggleListado);
-        $("#editar").click(editarMaestro);
-        $("#eliminar").click(eliminarMaestro);
+    // Configuración de Axios
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-        // Cargar datos iniciales
-        cargarDatosIniciales();
+    // Asignación de eventos
+    $('#logoutBtn').click(logout);
+    $('#Guardar').click(guardarMaestro);
+    $('#Listado').click(mostrarListado);
+    $('#editar').click(editarMaestro);
+    $('#eliminar').click(eliminarMaestro);
 
-        // Funciones principales
-        function cargarDatosIniciales() {
-            Promise.all([
-                cargarMaterias(),
-                cargarCarreras()
-            ]).then(() => {
-                mostrarListado();
-            }).catch(error => {
-                console.error('Error cargando datos iniciales:', error);
-                mostrarError('Error al cargar datos iniciales');
-            });
-        }
+    // Carga inicial
+    cargarMaterias();
 
-        function cargarMaterias() {
-            return axios.get('/api/maestros/materias/listado')
-                .then(response => {
-                    const selectMateria = $("#materia");
-                    selectMateria.empty().append(
-                        $('<option>').val('').prop('disabled', true).prop('selected', true).text('Seleccione una materia')
-                    );
-                    
-                    (response.data.DATA || []).forEach(materia => {
-                        selectMateria.append(
-                            $('<option>').val(materia.id_materia).text(materia.nombre_materia)
-                        );
-                    });
-                })
-                .catch(handleApiError('materias'));
-        }
-
-        function cargarCarreras() {
-            return axios.get('/api/maestros/carreras/listado')
-                .then(response => {
-                    const selectCarrera = $("#carrera");
-                    selectCarrera.empty().append(
-                        $('<option>').val('').prop('disabled', true).prop('selected', true).text('Seleccione una carrera')
-                    );
-                    
-                    (response.data.DATA || []).forEach(carrera => {
-                        selectCarrera.append(
-                            $('<option>').val(carrera.id_carrera).text(carrera.nombre_carrera)
-                        );
-                    });
-                })
-                .catch(handleApiError('carreras'));
-        }
-
-        function guardarMaestro() {
-            const datos = obtenerDatosFormulario();
-            
-            if (!validarDatosMaestro(datos)) {
-                return;
-            }
-
-            axios.post('/api/maestros', datos)
-                .then(response => {
-                    if (response.data.STATUS === "OK") {
-                        mostrarMensaje('success', 'Maestro registrado exitosamente');
-                        recargarDatos();
-                    } else {
-                        mostrarError(response.data.ERROR || 'Error al guardar');
-                    }
-                })
-                .catch(handleApiError('guardar'));
-        }
-
-        function editarMaestro() {
-            const id_maestro = obtenerIdMaestro();
-            if (!id_maestro) return;
-
-            const datos = obtenerDatosFormulario();
-            
-            if (!validarDatosMaestro(datos)) {
-                return;
-            }
-
-            axios.put(`/api/maestros/${id_maestro}`, datos)
-                .then(response => {
-                    if (response.data.STATUS === "OK") {
-                        mostrarMensaje('success', 'Maestro actualizado exitosamente');
-                        recargarDatos();
-                    } else {
-                        mostrarError(response.data.ERROR || 'Error al actualizar');
-                    }
-                })
-                .catch(handleApiError('editar'));
-        }
-
-        function eliminarMaestro() {
-            const id_maestro = obtenerIdMaestro();
-            if (!id_maestro) return;
-
-            if (!confirm(`¿Está seguro de eliminar al maestro con ID ${id_maestro}?`)) {
-                return;
-            }
-
-            axios.delete(`/api/maestros/${id_maestro}`)
-                .then(response => {
-                    if (response.data.STATUS === "OK") {
-                        mostrarMensaje('success', 'Maestro eliminado exitosamente');
-                        recargarDatos();
-                    } else {
-                        mostrarError(response.data.ERROR || 'Error al eliminar');
-                    }
-                })
-                .catch(handleApiError('eliminar'));
-        }
-
-        // Funciones auxiliares
-        function obtenerIdMaestro() {
-            let id_maestro = $("#id_maestro").val();
-            if (!id_maestro) {
-                id_maestro = prompt("Ingrese ID del maestro:");
-                if (!id_maestro) {
-                    mostrarError('Debe especificar un ID válido');
-                    return null;
+    // Funciones principales
+    function cargarMaterias() {
+        mostrarCarga('#materia', 'Cargando materias...');
+        axios.get('/api/maestros/materias/listado')
+            .then(response => {
+                if (response.data.STATUS === "OK") {
+                    const materias = response.data.DATA || [];
+                    $('#materia').html(`
+                        <option value="" disabled selected>Seleccione materia</option>
+                        ${materias.map(m => `<option value="${m.id_materia}">${m.nombre_materia}</option>`).join('')}
+                    `);
                 }
-                $("#id_maestro").val(id_maestro);
-            }
-            return id_maestro;
-        }
+            })
+            .catch(() => mostrarError('#materia', 'Error al cargar materias'))
+            .finally(() => $('#materia').prop('disabled', false));
+    }
 
-        function obtenerDatosFormulario() {
-            return {
-                nombres: $("#nombres").val().trim(),
-                apellidos: $("#apellidos").val().trim(),
-                id_materia: $("#materia").val(),
-                id_carrera: $("#carrera").val(),
-                telefono: $("#telefono").val().trim(),
-                correo: $("#correo").val().trim()
-            };
-        }
+    function guardarMaestro() {
+        const datos = obtenerDatosFormulario();
+        if (!validarDatos(datos)) return;
 
-        function validarDatosMaestro(datos) {
-            if (!datos.nombres || !datos.apellidos || !datos.id_materia) {
-                mostrarError('Nombre, apellido y materia son requeridos');
-                return false;
-            }
-            return true;
-        }
+        mostrarCarga();
+        axios.post('/api/maestros', datos)
+            .then(response => {
+                if (response.data.STATUS === "OK") {
+                    mostrarMensaje('Maestro guardado');
+                    limpiarFormulario();
+                }
+            })
+            .catch(handleError)
+            .finally(ocultarCarga);
+    }
 
-        function mostrarListado() {
-            $("#DivListado").slideDown();
-            axios.get('/api/maestros')
-                .then(response => {
-                    const maestros = response.data.DATA || [];
-                    const tbody = $("#tableBody");
-                    
-                    tbody.empty();
-                    
-                    if (maestros.length === 0) {
-                        tbody.append(`
-                            <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">
-                                    <i class="fas fa-info-circle me-2"></i>No hay registros
-                                </td>
-                            </tr>
-                        `);
-                        return;
-                    }
-                    
-                    maestros.forEach((maestro, index) => {
-                        tbody.append(`
-                            <tr>
-                                <td>${index + 1}</td>
-                                <td>${maestro.id_maestro}</td>
-                                <td>${maestro.nombres}</td>
-                                <td>${maestro.apellidos}</td>
-                                <td>${maestro.nombre_materia || 'N/A'}</td>
-                                <td><span class="badge bg-primary">${maestro.nombre_carrera || 'N/A'}</span></td>
-                                <td>${maestro.telefono || 'N/A'}</td>
-                                <td><a href="mailto:${maestro.correo}">${maestro.correo || 'N/A'}</a></td>
-                            </tr>
-                        `);
-                    });
-                })
-                .catch(handleApiError('listado'));
-        }
+    function editarMaestro() {
+        const id = $('#id_maestro').val() || prompt("ID del maestro:");
+        if (!id) return mostrarError('ID requerido');
 
-        function toggleListado() {
-            $("#DivListado").slideToggle();
-            if ($("#DivListado").is(":visible")) {
-                mostrarListado();
-            }
-        }
+        const datos = obtenerDatosFormulario();
+        if (!validarDatos(datos)) return;
 
-        function recargarDatos() {
-            limpiarFormulario();
-            mostrarListado();
-        }
+        mostrarCarga();
+        axios.put(`/api/maestros/${id}`, datos)
+            .then(response => {
+                if (response.data.STATUS === "OK") mostrarMensaje('Maestro actualizado');
+            })
+            .catch(handleError)
+            .finally(ocultarCarga);
+    }
 
-        function limpiarFormulario() {
-            $("#id_maestro, #nombres, #apellidos, #telefono, #correo").val('');
-            $("#materia, #carrera").val('').trigger('change');
-        }
+    function eliminarMaestro() {
+        const id = $('#id_maestro').val() || prompt("ID del maestro:");
+        if (!id || !confirm(`¿Eliminar maestro ${id}?`)) return;
 
-        function logout() {
-            axios.post('/logout')
-                .finally(() => {
-                    localStorage.clear();
-                    window.location.href = '/login';
-                });
-        }
+        mostrarCarga();
+        axios.delete(`/api/maestros/${id}`)
+            .then(response => {
+                if (response.data.STATUS === "OK") {
+                    mostrarMensaje('Maestro eliminado');
+                    limpiarFormulario();
+                }
+            })
+            .catch(handleError)
+            .finally(ocultarCarga);
+    }
 
-        function mostrarMensaje(tipo, mensaje) {
-            const alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
-            const alertDiv = $(`
-                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                    ${mensaje}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `);
-            
-            $("#Respuesta").html(alertDiv).fadeIn();
-            setTimeout(() => alertDiv.alert('close'), 5000);
-        }
+    function mostrarListado() {
+        $('#DivListado').slideToggle();
+        if (!$('#DivListado').is(':visible')) return;
 
-        function mostrarError(mensaje) {
-            mostrarMensaje('danger', mensaje);
-        }
+        mostrarCarga('#tableBody');
+        axios.get('/api/maestros')
+            .then(response => {
+                const html = response.data.DATA?.length ? 
+                    response.data.DATA.map((m, i) => `
+                        <tr>
+                            <td>${i+1}</td>
+                            <td>${m.id_maestro}</td>
+                            <td>${m.nombres}</td>
+                            <td>${m.apellidos}</td>
+                            <td>${m.nombre_materia || 'N/A'}</td>
+                            <td>${formatearCarrera(m.carrera)}</td>
+                            <td>${m.telefono || 'N/A'}</td>
+                            <td>${m.correo ? `<a href="mailto:${m.correo}">${m.correo}</a>` : 'N/A'}</td>
+                        </tr>
+                    `).join('') : `
+                    <tr><td colspan="8" class="text-center py-4 text-muted">No hay registros</td></tr>
+                `;
+                $('#tableBody').html(html);
+            })
+            .catch(() => $('#tableBody').html(`
+                <tr><td colspan="8" class="text-center py-4 text-danger">Error al cargar</td></tr>
+            `))
+            .finally(() => $('#tableBody').find('.spinner-border').remove());
+    }
 
-        function handleApiError(contexto) {
-            return error => {
-                console.error(`Error en ${contexto}:`, error);
-                const errorMsg = error.response?.data?.ERROR || 
-                               error.message || 
-                               `Error al procesar ${contexto}`;
-                mostrarError(errorMsg);
-                return Promise.reject(error);
-            };
-        }
-    });
+    // Funciones auxiliares
+    function obtenerDatosFormulario() {
+        return {
+            id_maestro: $('#id_maestro').val().trim(),
+            nombres: $('#nombres').val().trim(),
+            apellidos: $('#apellidos').val().trim(),
+            materia: $('#materia').val(),
+            carrera: $('#carrera').val(),
+            telefono: $('#telefono').val().trim(),
+            correo: $('#correo').val().trim()
+        };
+    }
+
+    function validarDatos({ id_maestro, nombres, apellidos, materia, carrera }) {
+        if (!id_maestro) return mostrarError('ID requerido', '#id_maestro');
+        if (!nombres) return mostrarError('Nombre requerido', '#nombres');
+        if (!apellidos) return mostrarError('Apellidos requeridos', '#apellidos');
+        if (!materia) return mostrarError('Materia requerida', '#materia');
+        if (!carrera) return mostrarError('Carrera requerida', '#carrera');
+        return true;
+    }
+
+    function formatearCarrera(codigo) {
+        const carreras = {
+            'ITSE': 'Ing. Telecomunicaciones',
+            'Informatica': 'Lic. Informática',
+            'InformaticaVirtual': 'Lic. Informática (Virtual)'
+        };
+        return carreras[codigo] || codigo || 'N/A';
+    }
+
+    function mostrarCarga(selector = '#Respuesta', texto = 'Procesando...') {
+        $(selector).html(`<div class="text-center"><div class="spinner-border"></div> ${texto}</div>`);
+    }
+
+    function ocultarCarga() {
+        $('#Respuesta').empty();
+    }
+
+    function mostrarError(mensaje, selector = '#Respuesta') {
+        $(selector).html(`<div class="alert alert-danger">${mensaje}</div>`);
+        if (selector !== '#Respuesta') $(selector).addClass('is-invalid');
+    }
+
+    function mostrarMensaje(mensaje) {
+        $('#Respuesta').html(`<div class="alert alert-success">${mensaje}</div>`);
+    }
+
+    function limpiarFormulario() {
+        $('input, select').val('').removeClass('is-invalid');
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login';
+    }
+
+    function handleError(error) {
+        const msg = error.response?.data?.ERROR || error.message || 'Error en la operación';
+        mostrarError(msg);
+    }
+});
 </script>
 </body>
 </html>
