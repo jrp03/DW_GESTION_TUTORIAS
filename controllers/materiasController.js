@@ -1,79 +1,232 @@
 import { Materia } from '../models/materia.js';
 
-// Métodos CRUD básicos
-export const getAllMaterias = async (req, res) => {
-  try {
-    const result = await Materia.getAll();
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+export const materiasController = {
+  // Métodos CRUD básicos
+  getAll: async (req, res) => {
+    try {
+      const result = await Materia.getAll();
 
-export const getMateriaById = async (req, res) => {
-  try {
-    const result = await Materia.getById(req.params.id);
-    if (result.length === 0) {
-      return res.status(404).json({ error: "Materia no encontrada" });
+      if (result.STATUS === "OK") {
+        return res.json({
+          STATUS: "OK",
+          DATA: result.DATA,
+          META: result.META
+        });
+      }
+
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: result.ERROR || "Error al obtener materias",
+        ...(result.DETAILS && { DETAILS: result.DETAILS })
+      });
+
+    } catch (error) {
+      console.error('Error en materiasController.getAll:', error);
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: "Error interno del servidor",
+        ...(process.env.NODE_ENV === 'development' && { DETAILS: error.message })
+      });
     }
-    res.json(result[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+  },
 
-export const createMateria = async (req, res) => {
-  try {
-    const { id_materia, nombre_materia } = req.body;
-    if (!id_materia || !nombre_materia) {
-      return res.status(400).json({ error: "Datos incompletos" });
+  getById: async (req, res) => {
+    try {
+      const result = await Materia.getById(req.params.id);
+
+      if (result.STATUS === "OK") {
+        return res.json({
+          STATUS: "OK",
+          DATA: result.DATA
+        });
+      }
+
+      if (result.STATUS === "NOT_FOUND") {
+        return res.status(404).json({
+          STATUS: "NOT_FOUND",
+          ERROR: result.ERROR
+        });
+      }
+
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: result.ERROR || "Error al obtener materia",
+        ...(result.DETAILS && { DETAILS: result.DETAILS })
+      });
+
+    } catch (error) {
+      console.error('Error en materiasController.getById:', error);
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: "Error interno del servidor"
+      });
     }
-    const result = await Materia.create({ id_materia, nombre_materia });
-    res.status(201).json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+  },
 
-export const updateMateria = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { nombre_materia } = req.body;
-    if (!nombre_materia) {
-      return res.status(400).json({ error: "Nombre requerido" });
+  create: async (req, res) => {
+    try {
+      const result = await Materia.create(req.body);
+
+      if (result.STATUS === "OK") {
+        return res.status(201).json({
+          STATUS: "OK",
+          DATA: result.DATA,
+          META: result.META
+        });
+      }
+
+      if (result.STATUS === "INVALID_INPUT") {
+        return res.status(400).json({
+          STATUS: "INVALID_INPUT",
+          ERROR: result.ERROR
+        });
+      }
+
+      if (result.CODE === 'ER_DUP_ENTRY') {
+        return res.status(409).json({
+          STATUS: "CONFLICT",
+          ERROR: "El ID de materia ya existe"
+        });
+      }
+
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: result.ERROR || "Error al crear materia",
+        ...(result.DETAILS && { DETAILS: result.DETAILS })
+      });
+
+    } catch (error) {
+      console.error('Error en materiasController.create:', error);
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: "Error interno del servidor"
+      });
     }
-    const result = await Materia.update(id, { nombre_materia });
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+  },
 
-export const deleteMateria = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await Materia.delete(id);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+  update: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await Materia.update(id, req.body);
 
-// Métodos adicionales
-export const getMateriasByCarrera = async (req, res) => {
-  try {
-    const result = await Materia.getByCarrera(req.params.carrera);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+      if (result.STATUS === "OK") {
+        return res.json({
+          STATUS: "OK",
+          META: result.META
+        });
+      }
 
-export const getMateriasByMaestro = async (req, res) => {
-  try {
-    const result = await Materia.getByMaestro(req.params.idMaestro);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+      if (result.STATUS === "NOT_FOUND") {
+        return res.status(404).json({
+          STATUS: "NOT_FOUND",
+          ERROR: result.ERROR
+        });
+      }
+
+      if (result.STATUS === "INVALID_INPUT") {
+        return res.status(400).json({
+          STATUS: "INVALID_INPUT",
+          ERROR: result.ERROR
+        });
+      }
+
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: result.ERROR || "Error al actualizar materia",
+        ...(result.DETAILS && { DETAILS: result.DETAILS })
+      });
+
+    } catch (error) {
+      console.error('Error en materiasController.update:', error);
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: "Error interno del servidor"
+      });
+    }
+  },
+
+  delete: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await Materia.delete(id);
+
+      if (result.STATUS === "OK") {
+        return res.json({
+          STATUS: "OK",
+          META: result.META
+        });
+      }
+
+      if (result.STATUS === "NOT_FOUND") {
+        return res.status(404).json({
+          STATUS: "NOT_FOUND",
+          ERROR: result.ERROR
+        });
+      }
+
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: result.ERROR || "Error al eliminar materia",
+        ...(result.DETAILS && { DETAILS: result.DETAILS })
+      });
+
+    } catch (error) {
+      console.error('Error en materiasController.delete:', error);
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: "Error interno del servidor"
+      });
+    }
+  },
+
+  // Métodos adicionales
+  getByCarrera: async (req, res) => {
+    try {
+      const result = await Materia.getByCarrera(req.params.carrera);
+
+      if (result.STATUS === "OK") {
+        return res.json({
+          STATUS: "OK",
+          DATA: result.DATA
+        });
+      }
+
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: result.ERROR || "Error al obtener materias por carrera"
+      });
+
+    } catch (error) {
+      console.error('Error en materiasController.getByCarrera:', error);
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: "Error interno del servidor"
+      });
+    }
+  },
+
+  getByMaestro: async (req, res) => {
+    try {
+      const result = await Materia.getByMaestro(req.params.idMaestro);
+
+      if (result.STATUS === "OK") {
+        return res.json({
+          STATUS: "OK",
+          DATA: result.DATA
+        });
+      }
+
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: result.ERROR || "Error al obtener materias por maestro"
+      });
+
+    } catch (error) {
+      console.error('Error en materiasController.getByMaestro:', error);
+      return res.status(500).json({
+        STATUS: "ERROR",
+        ERROR: "Error interno del servidor"
+      });
+    }
   }
 };

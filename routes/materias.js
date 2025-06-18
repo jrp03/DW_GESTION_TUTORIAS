@@ -1,26 +1,18 @@
 import express from "express";
-import {
-  getAllMaterias,
-  getMateriaById,
-  createMateria,
-  updateMateria,
-  deleteMateria,
-  getMateriasByCarrera,
-  getMateriasByMaestro
-} from "../controllers/materiasController.js";
+import { materiasController } from "../controllers/materiasController.js";
 
 const router = express.Router();
 
 // CRUD básico
-router.get("/", getAllMaterias);
-router.get("/:id", getMateriaById);
-router.post("/", createMateria);
-router.put("/:id", updateMateria);
-router.delete("/:id", deleteMateria);
+router.get("/", materiasController.getAll);
+router.get("/:id", materiasController.getById);
+router.post("/", materiasController.create);
+router.put("/:id", materiasController.update);
+router.delete("/:id", materiasController.delete);
 
 // Rutas especiales
-router.get("/carrera/:carrera", getMateriasByCarrera);
-router.get("/maestro/:idMaestro", getMateriasByMaestro);
+router.get("/carrera/:carrera", materiasController.getByCarrera);
+router.get("/maestro/:idMaestro", materiasController.getByMaestro);
 
 // Middleware de errores
 router.use((err, req, res, next) => {

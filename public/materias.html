@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         :root {
             --primary-color: #4361ee;
@@ -273,123 +275,162 @@
 
     <script>
     $(document).ready(function() {
-        // Verificar autenticación
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        
-        if (!token) {
-            window.location.href = '/login';
-            return;
+    // Verificar autenticación
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (!token || !user.role) {
+        window.location.href = '/login';
+        return;
+    }
+
+    // Configurar Axios
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    
+    // Eventos
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    $("#Guardar").click(guardarMateria);
+    $("#Listado").click(toggleListado);
+    $("#Editar").click(editarMateria);
+    $("#Eliminar").click(eliminarMateria);
+
+    // Cargar listado inicial
+    mostrarListado();
+
+    // Funciones principales
+    function guardarMateria() {
+        const datos = {
+            id_materia: $("#id_materia").val().trim(),
+            nombre_materia: $("#nombre_materia").val().trim()
+        };
+
+        if (!validarDatos(datos)) return;
+
+        mostrarCarga();
+        axios.post('/api/materias', datos)
+            .then(response => {
+                if (response.data.STATUS === "OK") {
+                    mostrarMensaje('Materia registrada exitosamente');
+                    recargarDatos();
+                }
+            })
+            .catch(handleError)
+            .finally(ocultarCarga);
+    }
+
+    function editarMateria() {
+        const id = $("#id_materia").val().trim() || prompt("Ingrese ID de la materia:");
+        if (!id) return mostrarError('ID de materia requerido');
+
+        const nombre_materia = $("#nombre_materia").val().trim() || prompt("Ingrese nuevo nombre:");
+        if (!nombre_materia) return mostrarError('Nombre de materia requerido');
+
+        mostrarCarga();
+        axios.put(`/api/materias/${id}`, { nombre_materia })
+            .then(response => {
+                if (response.data.STATUS === "OK") {
+                    mostrarMensaje('Materia actualizada exitosamente');
+                    recargarDatos();
+                }
+            })
+            .catch(handleError)
+            .finally(ocultarCarga);
+    }
+
+    function eliminarMateria() {
+        const id = $("#id_materia").val().trim() || prompt("Ingrese ID de la materia a eliminar:");
+        if (!id || !confirm(`¿Eliminar materia ${id}?`)) return;
+
+        mostrarCarga();
+        axios.delete(`/api/materias/${id}`)
+            .then(response => {
+                if (response.data.STATUS === "OK") {
+                    mostrarMensaje('Materia eliminada exitosamente');
+                    recargarDatos();
+                }
+            })
+            .catch(handleError)
+            .finally(ocultarCarga);
+    }
+
+    function mostrarListado() {
+        mostrarCarga('#tableBody');
+        axios.get('/api/materias')
+            .then(response => {
+                const materias = response.data.DATA || [];
+                const html = materias.length ? 
+                    materias.map((m, i) => `
+                        <tr>
+                            <td>${i+1}</td>
+                            <td>${m.id_materia}</td>
+                            <td>${m.nombre_materia}</td>
+                        </tr>
+                    `).join('') : `
+                    <tr><td colspan="3" class="text-center py-4 text-muted">
+                        <i class="fas fa-info-circle me-2"></i>No hay materias registradas
+                    </td></tr>`;
+                $('#tableBody').html(html);
+            })
+            .catch(() => {
+                $('#tableBody').html(`
+                    <tr><td colspan="3" class="text-center py-4 text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Error al cargar materias
+                    </td></tr>
+                `);
+            })
+            .finally(() => $('#tableBody').find('.spinner-border').remove());
+    }
+
+    function toggleListado() {
+        $("#DivListado").slideToggle();
+        if ($("#DivListado").is(":visible")) {
+            mostrarListado();
         }
+    }
 
-        // Manejar logout
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/login';
-        });
+    // Funciones auxiliares
+    function validarDatos({ id_materia, nombre_materia }) {
+        if (!id_materia) return mostrarError('ID de materia requerido', '#id_materia');
+        if (!nombre_materia) return mostrarError('Nombre de materia requerido', '#nombre_materia');
+        return true;
+    }
 
-        // Guardar Materia
-        $("#Guardar").click(function() {
-            let id_materia = $("#id_materia").val().trim();
-            let nombre_materia = $("#nombre_materia").val().trim();
+    function mostrarCarga(selector = '#Respuesta') {
+        $(selector).html('<div class="text-center"><div class="spinner-border"></div></div>');
+    }
 
-            if (id_materia && nombre_materia) {
-                $.post("/api/materias/guardar", {
-                    id_materia: id_materia,
-                    nombre_materia: nombre_materia
-                }, function(data) {
-                    $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
-                    $("#Listado").click();
-                    limpiarFormulario();
-                }).fail(function() {
-                    $("#Respuesta").html('<div class="alert alert-danger">Error al guardar los datos</div>').fadeIn().delay(3000).fadeOut();
-                });
-            } else {
-                $("#Respuesta").html('<div class="alert alert-warning">Por favor, completa todos los campos.</div>').fadeIn().delay(3000).fadeOut();
-            }
-        });
+    function ocultarCarga() {
+        $('#Respuesta').empty();
+    }
 
-        // Listar Materias
-        $("#Listado").click(function() {
-            $("#DivListado").slideDown();
-            $.get("/api/materias", function(data) {
-                if (data.DATA.length > 0) {
-                    let html = "";
-                    $.each(data.DATA, function(index, value) {
-                        html += `<tr>
-                                    <td>${index + 1}</td>
-                                    <td>${value.id_materia}</td>
-                                    <td>${value.nombre_materia}</td>
-                                 </tr>`;
-                    });
-                    $("#tableBody").html(html);
-                } else {
-                    $("#tableBody").html(`<tr><td colspan="3" class="text-center py-4 text-muted">
-                        <i class="fas fa-info-circle me-2"></i>No hay registros disponibles
-                    </td></tr>`);
-                }
-            });
-        });
+    function mostrarMensaje(mensaje) {
+        $('#Respuesta').html(`<div class="alert alert-success">${mensaje}</div>`);
+    }
 
-        // Editar Materia
-        $("#Editar").click(function() {
-            let id_materia = $("#id_materia").val().trim();
-            if (!id_materia) {
-                id_materia = prompt("Ingresa el ID de la materia a editar:");
-                if (!id_materia) {
-                    $("#Respuesta").html('<div class="alert alert-warning">Debes ingresar un ID válido</div>').fadeIn().delay(3000).fadeOut();
-                    return;
-                }
-            }
+    function mostrarError(mensaje, selector = '#Respuesta') {
+        $(selector).html(`<div class="alert alert-danger">${mensaje}</div>`);
+        if (selector !== '#Respuesta') $(selector).addClass('is-invalid');
+    }
 
-            let nombre_materia = $("#nombre_materia").val().trim();
-            if (!nombre_materia) {
-                nombre_materia = prompt("Ingresa el nuevo nombre de la materia:");
-                if (!nombre_materia) {
-                    $("#Respuesta").html('<div class="alert alert-warning">Debes ingresar un nombre válido</div>').fadeIn().delay(3000).fadeOut();
-                    return;
-                }
-            }
+    function recargarDatos() {
+        limpiarFormulario();
+        mostrarListado();
+    }
 
-            $.post("/api/materias/editar", {
-                id_materia: id_materia,
-                nombre_materia: nombre_materia
-            }, function(data) {
-                $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
-                $("#Listado").click();
-                limpiarFormulario();
-            }).fail(function() {
-                $("#Respuesta").html('<div class="alert alert-danger">Error al editar la materia</div>').fadeIn().delay(3000).fadeOut();
-            });
-        });
+    function limpiarFormulario() {
+        $('#id_materia, #nombre_materia').val('').removeClass('is-invalid');
+    }
 
-        // Eliminar Materia
-        $("#Eliminar").click(function() {
-            let id_materia = $("#id_materia").val().trim();
-            if (!id_materia) {
-                id_materia = prompt("Ingresa el ID de la materia a eliminar:");
-                if (!id_materia) {
-                    $("#Respuesta").html('<div class="alert alert-warning">Debes ingresar un ID válido</div>').fadeIn().delay(3000).fadeOut();
-                    return;
-                }
-            }
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login';
+    }
 
-            if (confirm(`¿Estás seguro de eliminar la materia con ID ${id_materia}?`)) {
-                $.post("/api/materias/eliminar", { id_materia: id_materia }, function(data) {
-                    $("#Respuesta").html(`<div class="alert alert-success">${data}</div>`).fadeIn().delay(3000).fadeOut();
-                    $("#Listado").click();
-                    limpiarFormulario();
-                }).fail(function() {
-                    $("#Respuesta").html('<div class="alert alert-danger">Error al eliminar la materia</div>').fadeIn().delay(3000).fadeOut();
-                });
-            }
-        });
-
-        function limpiarFormulario() {
-            $("#id_materia, #nombre_materia").val('');
-        }
-    });
+    function handleError(error) {
+        const msg = error.response?.data?.ERROR || error.message || 'Error en la operación';
+        mostrarError(msg);
+    }
+});
     </script>
 </body>
 </html>
